@@ -224,20 +224,20 @@ void VulkanWindow::mouseMoveEvent(QMouseEvent *event)
 void VulkanWindow::handleInput()
 {
     //Camera
-    mCamera->setSpeed(0.f);  //cancel last frame movement
     if (mInput.RMB)
     {
         if (mInput.W)
-            mCamera->setSpeed(mCameraSpeed);
+            mCamera->move(mCamera->mAt);
         if (mInput.S)
-            mCamera->setSpeed(-mCameraSpeed);
+            mCamera->move(-mCamera->mAt);
         if (mInput.D)
-            mCamera->moveRight(-mCameraSpeed);
+            mCamera->move(mCamera->mRight);
         if (mInput.A)
-            mCamera->moveRight(mCameraSpeed);
-        if (mInput.Q)
-            mCamera->updateHeigth(mCameraSpeed);
-        if (mInput.E)
-            mCamera->updateHeigth(-mCameraSpeed);
+            mCamera->move(-mCamera->mRight);
+
+        //if (mInput.Q)
+        //    mCamera->updateHeigth(mCameraSpeed);
+        //if (mInput.E)
+        //    mCamera->updateHeigth(-mCameraSpeed);
     }
 }

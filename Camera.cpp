@@ -44,12 +44,16 @@ void Camera::update()
 {
 	//Set ViewMatrix to Identity, then add the new position and rotations
     mViewMatrix.setToIdentity();
-	mPosition.setZ(mPosition.z() + mSpeed);
+	//mPosition.setZ(mPosition.z() + mSpeed);
     //mViewMatrix.translate(mPosition);               //Makes rotation work around World Origo
     mViewMatrix.rotate(mYaw, 0.f, 1.f, 0.f);
     mViewMatrix.rotate(mPitch, 1.f, 0.f, 0.f);
     //mViewMatrix.rotate(mYaw, 0.f, 1.f, 0.f);      //pitch then yaw makes camera wonkey
     mViewMatrix.translate(mPosition);             //Makes rotation work around Camera Origo
+
+	mAt = -mViewMatrix.column(2).toVector3D().normalized();
+	mUp = mViewMatrix.column(1).toVector3D().normalized();
+	mRight = mViewMatrix.column(0).toVector3D().normalized();
 }
 
 void Camera::setPosition(const QVector3D& position)
@@ -58,14 +62,9 @@ void Camera::setPosition(const QVector3D& position)
     update();
 }
 
-void Camera::setSpeed(float speed)
+void Camera::move(QVector3D direction)
 {
-    mSpeed = speed;
-}
-
-void Camera::moveRight(float delta)
-{
-    mPosition.setX( mPosition.x() + delta);
+	mPosition += direction * mSpeed;
 }
 
 void Camera::updateHeigth(float deltaHeigth)

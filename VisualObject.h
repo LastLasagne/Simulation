@@ -14,6 +14,7 @@ public:
     void move(float x, float y = 0.0f, float z = 0.0f);
     void scale(float s);
     void rotate(float t, float x, float y, float z);
+    void rotate(float t, QVector3D xyz);
 
 	//Setters and Getters
     inline std::vector<Vertex> getVertices() { return mVertices; }
@@ -34,6 +35,7 @@ public:
 
     QVector3D getPosition();
     void setPosition(float x, float y, float z);
+    void setPosition(QVector3D pos);
 
 protected:
     std::vector<Vertex> mVertices;
@@ -45,7 +47,8 @@ protected:
 	BufferHandle mIndexBuffer;
     //VkPrimitiveTopology mTopology{ VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST }; //not used
 
-    int drawType{ 0 }; // 0 = fill, 1 = line
+    int drawType{ 0 };
+    // 0 = fill, 1 = line
 };
 
 #endif // VISUALOBJECT_H

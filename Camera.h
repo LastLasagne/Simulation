@@ -15,6 +15,7 @@ public:
     void translate(float dx, float dy, float dz);
     void rotate(float t, float x, float y, float z);
 
+    void move(QVector3D direction);
     void setSpeed(float speed);
     void moveRight(float delta);
     void updateHeigth(float deltaHeigth);
@@ -31,10 +32,11 @@ public:
     inline void setViewMatrix(const QMatrix4x4 &newViewMatrix){ mViewMatrix = newViewMatrix; }
     inline void setProjectionMatrix(const QMatrix4x4 &newProjectionMatrix){ mProjectionMatrix = newProjectionMatrix; }
 
-private:
-    QVector3D mEye{0.0, 0.0, 0.0};  // Camera position
     QVector3D mAt{0.0, 0.0, -1.0};   // Forward vector
     QVector3D mUp{0.0, 1.0, 0.0};   // Up vector
+	QVector3D mRight{ 1.0, 0.0, 0.0 }; // Right vector
+private:
+    QVector3D mEye{0.0, 0.0, 0.0};  // Camera position
 
     QMatrix4x4 mProjectionMatrix{};
     QMatrix4x4 mViewMatrix{};
@@ -43,9 +45,7 @@ private:
     float mPitch{ 0.f };
     float mYaw{ 0.f };
 
-    float mSpeed{ 0.f }; //camera will move by this speed
-
-
+    const float mSpeed{ 0.01f }; //camera will move by this speed
 };
 
 #endif // CAMERA_H

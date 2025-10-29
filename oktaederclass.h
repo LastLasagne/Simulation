@@ -1,0 +1,14 @@
+#ifndef OKTAEDERCLASS_H
+#define OKTAEDERCLASS_H
+#include "../../../../../Users/doppe/Downloads/oktaeder_copy/oktaeder_copy/oktaeder/ExamCode/VisualObject.h"
+class oktaederClass: public VisualObject
+{
+public:
+    oktaederClass();
+    int n = 1;
+    //int n=24*pow(4,n);
+    void subDivide(const QVector3D& a, const QVector3D& b, const QVector3D& c, int n);
+    void lagTriangel(const QVector3D& a, const QVector3D& b, const QVector3D& c);
+};
+
+#endif // OKTAEDERCLASS_H
