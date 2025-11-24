@@ -32,30 +32,30 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     surface->setName("surface");
     mObjects.push_back(surface);
 
-    RollingBall* ball = new RollingBall();
-    ball->setName("ball");
-    ball->scale(0.05);
-    ball->setPosition(1.5f, 1.5f, 5.0f);
-    //ball->setPosition(0.25f, 0.25f, 3.0f);
-    mObjects.push_back(ball);
+    //RollingBall* ball = new RollingBall();
+    //ball->setName("ball");
+    //ball->scale(0.05);
+    //ball->setPosition(1.5f, 1.5f, 5.0f);
+    ////ball->setPosition(0.25f, 0.25f, 3.0f);
+    //mObjects.push_back(ball);
 
-    RollingBall* ball2 = new RollingBall();
-    ball2->setName("ball2");
-    ball2->scale(0.05);
-    ball2->setPosition(2.0f, 0.5f, 3.0f);
-    mObjects.push_back(ball2);
+    //RollingBall* ball2 = new RollingBall();
+    //ball2->setName("ball2");
+    //ball2->scale(0.05);
+    //ball2->setPosition(2.0f, 0.5f, 3.0f);
+    //mObjects.push_back(ball2);
 
-    RollingBall* ball3 = new RollingBall();
-    ball3->setName("ball3");
-    ball3->scale(0.05);
-    ball3->setPosition(0.5f, 1.5f, 3.0f);
-    mObjects.push_back(ball3);
+    //RollingBall* ball3 = new RollingBall();
+    //ball3->setName("ball3");
+    //ball3->scale(0.05);
+    //ball3->setPosition(0.5f, 1.5f, 3.0f);
+    //mObjects.push_back(ball3);
 
-    RollingBall* ball4 = new RollingBall();
-    ball4->setName("ball4");
-    ball4->scale(0.05);
-    ball4->setPosition(2.5f, 1.5f, 3.0f);
-    mObjects.push_back(ball4);
+    //RollingBall* ball4 = new RollingBall();
+    //ball4->setName("ball4");
+    //ball4->scale(0.05);
+    //ball4->setPosition(2.5f, 1.5f, 3.0f);
+    //mObjects.push_back(ball4);
 
     // **************************************
     // Objects in optional map
@@ -64,12 +64,7 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
         mMap.insert(std::pair<std::string, VisualObject*>{(*it)->getName(),*it});
 
 	//Inital position of the camera
-    //mCamera.setPosition(QVector3D(-8, -0.5, -2));
-    //mCamera.pitch(320);
-    //mCamera.yaw(-90);
-    //terrain:
-     mCamera.setPosition(QVector3D(-0.5, -0.5, -10));
-    //no pitch and yaw
+     mCamera.mPosition = QVector3D(0.0f, 0.0f, 5.0f);
 
     //Need access to our VulkanWindow so making a convenience pointer
     mVulkanWindow = dynamic_cast<VulkanWindow*>(w);

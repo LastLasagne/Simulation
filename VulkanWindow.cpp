@@ -60,11 +60,6 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_1)
         mIndex = 1;
 
-    if(event->key() == Qt::Key_R)
-    {
-        dynamic_cast<Renderer*>(mRenderer)->mCamera.rotate(45, 0.0f, 0.0f, 1.0f);
-    }
-
     //    You get the keyboard input like this
     if(event->key() == Qt::Key_W)
     {
@@ -209,7 +204,7 @@ void VulkanWindow::mouseReleaseEvent(QMouseEvent *event)
         mInput.MMB = false;
 }
 
-void VulkanWindow::mouseMoveEvent(QMouseEvent *event)
+void VulkanWindow::mouseMoveEvent(QMouseEvent* event)
 {
     if (mInput.RMB)
     {
@@ -217,32 +212,36 @@ void VulkanWindow::mouseMoveEvent(QMouseEvent *event)
         mMouseXlast = event->pos().x() - mMouseXlast;
         mMouseYlast = event->pos().y() - mMouseYlast;
 
-        if (mMouseXlast != 0)
-            dynamic_cast<Renderer*>(mRenderer)->mCamera.yaw(-mCameraRotateSpeed * mMouseXlast);
-        if (mMouseYlast != 0)
-            dynamic_cast<Renderer*>(mRenderer)->mCamera.pitch(-mCameraRotateSpeed * mMouseYlast);
+        mCamera->mYaw += mMouseXlast * mCameraRotateSpeed;
+        mCamera->mPitch += mMouseYlast * mCameraRotateSpeed;
+
     }
     mMouseXlast = event->pos().x();
     mMouseYlast = event->pos().y();
+
 }
 
 void VulkanWindow::handleInput()
 {
-    //Camera
+    //If camera is not set, don't try to update it!
+    if (!mCamera)
+        return;
+
+    mCamera->resetMovement();  //reset last frame movement
+
     if (mInput.RMB)
     {
         if (mInput.W)
-            mCamera->move(mCamera->mAt);
+            mCamera->mCameraMovement.setZ(mCamera->mCameraMovement.z() + mCameraSpeed); //forward
         if (mInput.S)
-            mCamera->move(-mCamera->mAt);
+            mCamera->mCameraMovement.setZ(mCamera->mCameraMovement.z() - mCameraSpeed); //backward
         if (mInput.D)
-            mCamera->move(mCamera->mRight);
+            mCamera->mCameraMovement.setX(mCamera->mCameraMovement.x() + mCameraSpeed); //right
         if (mInput.A)
-            mCamera->move(-mCamera->mRight);
-
-        //if (mInput.Q)
-        //    mCamera->updateHeigth(mCameraSpeed);
-        //if (mInput.E)
-        //    mCamera->updateHeigth(-mCameraSpeed);
+            mCamera->mCameraMovement.setX(mCamera->mCameraMovement.x() - mCameraSpeed); //left
+        if (mInput.Q)
+            mCamera->mCameraMovement.setY(mCamera->mCameraMovement.y() - mCameraSpeed); //down
+        if (mInput.E)
+            mCamera->mCameraMovement.setY(mCamera->mCameraMovement.y() + mCameraSpeed); //up
     }
 }

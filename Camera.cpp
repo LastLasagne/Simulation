@@ -21,69 +21,29 @@ void Camera::perspective(int degrees, double aspect, double nearplane, double fa
     // mProjectionMatrix.scale(1.0f, -1.0f, 1.0f);
 }
 
-void Camera::lookAt(const QVector3D &eye, const QVector3D &at, const QVector3D &up)
-{
-    mEye = eye;
-    mAt = at;
-    mUp = up;
-    mViewMatrix.setToIdentity();
-    mViewMatrix.lookAt(mEye, mAt, mUp);
-}
-
-void Camera::pitch(float degrees)
-{
-    mPitch += degrees;
-}
-
-void Camera::yaw(float degrees)
-{
-	mYaw += degrees;
-}
-
 void Camera::update()
 {
-	//Set ViewMatrix to Identity, then add the new position and rotations
+    // ***** Rotation ***** :
+    // no roll, since that is not needed for now
+
+    mForward = rotateX(QVector3D{ 0, 0, -1 }, mPitch);
+    //rotateY rotates around world up, so this does not roll the camera:
+    mForward = rotateY(mForward, mYaw);
+
+
+    // ***** Movement ***** :
+
+    // move camera along the forward vector:
+    mPosition += mForward * mCameraMovement.z();
+
+    // the local right vector of the camera:
+    mRight = rotateY(QVector3D{ 1, 0, 0 }, mYaw);
+    // move camera along the right vector:
+    mPosition += mRight * mCameraMovement.x();
+
+    // move camera along worldUp vector
+    mPosition += mUp * mCameraMovement.y();
+
     mViewMatrix.setToIdentity();
-	//mPosition.setZ(mPosition.z() + mSpeed);
-    //mViewMatrix.translate(mPosition);               //Makes rotation work around World Origo
-    mViewMatrix.rotate(mYaw, 0.f, 1.f, 0.f);
-    mViewMatrix.rotate(mPitch, 1.f, 0.f, 0.f);
-    //mViewMatrix.rotate(mYaw, 0.f, 1.f, 0.f);      //pitch then yaw makes camera wonkey
-    mViewMatrix.translate(mPosition);             //Makes rotation work around Camera Origo
-
-	mAt = -mViewMatrix.column(2).toVector3D().normalized();
-	mUp = mViewMatrix.column(1).toVector3D().normalized();
-	mRight = mViewMatrix.column(0).toVector3D().normalized();
+    mViewMatrix.lookAt(mPosition, mPosition + mForward, mUp);
 }
-
-void Camera::setPosition(const QVector3D& position)
-{
-    mPosition = position;
-    update();
-}
-
-void Camera::move(QVector3D direction)
-{
-	mPosition += direction * mSpeed;
-}
-
-void Camera::updateHeigth(float deltaHeigth)
-{
-    mPosition.setY(mPosition.y() + deltaHeigth);
-}
-
-//Translate camera in world coordinates
-void Camera::translate(float dx, float dy, float dz)
-{
-    mViewMatrix.translate(dx, dy, dz);
-}
-
-void Camera::rotate(float t, float x, float y, float z)
-{
-    mViewMatrix.rotate(t,x,y,z);
-}
-
-//QMatrix4x4 Camera::cMatrix()
-//{
-//    return mProjectionMatrix * mViewMatrix;
-//}

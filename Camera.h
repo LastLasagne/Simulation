@@ -10,42 +10,74 @@ public:
 
     void init();
     void perspective(int degrees, double aspect, double nearplane, double farplane);
-    void lookAt(const QVector3D& eye, const QVector3D& at, const QVector3D& up);
-
-    void translate(float dx, float dy, float dz);
-    void rotate(float t, float x, float y, float z);
-
-    void move(QVector3D direction);
-    void setSpeed(float speed);
-    void moveRight(float delta);
-    void updateHeigth(float deltaHeigth);
-    //QMatrix4x4 cMatrix();
 
 	inline QMatrix4x4 viewMatrix() const { return mViewMatrix; }
 	inline QMatrix4x4 projectionMatrix() const { return mProjectionMatrix; }
 
+	void resetMovement() { mCameraMovement = QVector3D(0, 0, 0); }  
     void update();
-	void setPosition(const QVector3D& position);
-    void pitch(float degrees);
-    void yaw(float degrees);
 
-    inline void setViewMatrix(const QMatrix4x4 &newViewMatrix){ mViewMatrix = newViewMatrix; }
     inline void setProjectionMatrix(const QMatrix4x4 &newProjectionMatrix){ mProjectionMatrix = newProjectionMatrix; }
-
-    QVector3D mAt{0.0, 0.0, -1.0};   // Forward vector
-    QVector3D mUp{0.0, 1.0, 0.0};   // Up vector
-	QVector3D mRight{ 1.0, 0.0, 0.0 }; // Right vector
-private:
-    QVector3D mEye{0.0, 0.0, 0.0};  // Camera position
 
     QMatrix4x4 mProjectionMatrix{};
     QMatrix4x4 mViewMatrix{};
 
     QVector3D mPosition{ 0.f, 0.f, 0.f };
-    float mPitch{ 0.f };
-    float mYaw{ 0.f };
 
-    const float mSpeed{ 0.01f }; //camera will move by this speed
+    QVector3D mForward{ 0, 0, -1 };  // Forward vector local to the camera
+    QVector3D mUp{ 0, 1, 0 };        // Using world up
+    QVector3D mRight{ 1, 0, 0 };     // Right vector local to the camera
+
+    float mPitch{ 0.f };     // The pitch of the camera - in Euler angle
+    float mYaw{ 0.f };       // The yaw of the camera - in Euler angle
+
+    // How much should the camera move next frame in cameraForward coordinates
+    QVector3D mCameraMovement{ 0, 0, 0 };
+
+
+    // ******* Utility functions - should be in some common place so we can reuse it in all of our code:
+
+    // Rotates vector v by angleEuler degrees around the selected world axis
+    QVector3D rotateX(const QVector3D& v, float angleEuler)
+    {
+        float angleRad = angleEuler * M_PI / 180;
+        float c = cos(angleRad);
+        float s = sin(angleRad);
+        return QVector3D
+        (
+            v.x(),
+			v.y() * c - s * v.z(),
+			v.y() * s + c * v.z()
+        );
+    }
+
+    // Rotates vector v by angleEuler degrees around the selected world axis
+    QVector3D rotateY(const QVector3D& v, float angleEuler)
+    {
+        float angleRad = angleEuler * M_PI / 180;
+        float c = cos(angleRad);
+        float s = sin(angleRad);
+        return QVector3D
+        (
+            c * v.x() + s * v.z(),
+            v.y(),
+            -s * v.x() + c * v.z()
+        );
+    }
+
+    // Rotates vector v by angleEuler degrees around the selected world axis
+    QVector3D rotateZ(const QVector3D& v, float angleEuler)
+    {
+        float angleRad = angleEuler * M_PI / 180;
+        float c = cos(angleRad);
+        float s = sin(angleRad);
+        return QVector3D
+        (
+            c * v.x() - s * v.y(),
+            s * v.x() + c * v.y(),
+            v.z()
+        );
+    }
 };
 
 #endif // CAMERA_H
