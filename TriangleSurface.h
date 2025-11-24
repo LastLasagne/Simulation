@@ -16,22 +16,20 @@ private:
     std::vector<float> heights;
     std::vector<int> counts;
 
-    float xMin = FLT_MAX;
-	float xMax = -FLT_MAX;
-    float yMin = FLT_MAX;
-    float yMax = -FLT_MAX;
-	float zMin = FLT_MAX;
-	float zMax = -FLT_MAX;
+    Point min;
+    Point max;
 
-	int rowColCount = 0;
 	int size = 0;
+    int colCount = 0;
+    int rowCount = 0;
 
-	const float RESOLUTION = 0.001f;
-	const float HEIGHT_SCALE = 1.0f;
+	const float RESOLUTION = 0.05f;
+	const float HEIGHT_SCALE = 2.0f;
 
 public:
     TriangleSurface();
     TriangleSurface(const std::string& filename);
+    TriangleSurface(bool toggle, const std::string& filename);
 
     CollisionObject* SurfaceSphereCollision(QVector3D position, float radius);
 

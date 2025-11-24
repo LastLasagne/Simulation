@@ -31,6 +31,11 @@ void VulkanWindow::setCameraSpeed(float value)
 
 void VulkanWindow::keyPressEvent(QKeyEvent *event)
 {
+    if (event->key() == Qt::Key_C)
+    {
+        dynamic_cast<Renderer*>(mRenderer)->SpawnBall();
+    }
+
     if (event->key() == Qt::Key_G)
     {
         //dynamic_cast<RenderWindow*>(mRenderWindow)->mObjects.at(mIndex)->move(-0.1f);

@@ -2,8 +2,9 @@
 
 RollingBall::RollingBall() {}
 
-void RollingBall::Update(float time)
+void RollingBall::Update(TriangleSurface* surface, float time)
 {
+	qDebug() << time;
 	if (isResting)
 		return;
 
@@ -13,25 +14,29 @@ void RollingBall::Update(float time)
 	if (contactObject != nullptr)
 	{
 		//roll down
-		QVector3D normal = contactObject->triangle->normal;
-		QVector3D NORMAL = (normal * normal.z());
+		QVector3D normal = contactObject->normal;
+		//QVector3D NORMAL = (normal * normal.z());
 
-		//QVector3D acceleration = ((QVector3D::dotProduct(GRAVITY, normal)) * normal);
+		acceleration = GRAVITY - ((QVector3D::dotProduct(GRAVITY, normal)) * normal);
 		//float gravityLength = GRAVITY.length();
 		//QVector3D accelerating = mass * gravityLength * ((QVector3D(normal.x() * normal.z(), normal.y() * normal.z(), normal.z() * normal.z() - 1)) );
-		QVector3D accelerationForce = NORMAL + GRAVITY.normalized();
-		isAccelerating = abs(accelerationForce.length()) > 0.0001;
+		isAccelerating = abs(acceleration.length()) > 0.005;
+		//QVector3D accelerationForce = NORMAL + GRAVITY.normalized();
 
-		float frictionValue = NORMAL.length() * FRICTION;
-		QVector3D frictionForce = velocity.normalized() * frictionValue;
+		////todo fix friction
+		//float frictionValue = NORMAL.length() * FRICTION;
+		//QVector3D frictionForce = QVector3D(0, 0, 0); //velocity.normalized()* frictionValue;
 
-		acceleration = (accelerationForce - frictionForce) / mass;
+		//acceleration = (accelerationForce - frictionForce) / mass;
 		//acceleration = accelerationDirection * (GRAVITY.length() * (accelerationValue - frictionValue));
+		// 
+		//QVector3D tangentVel = velocity - QVector3D::dotProduct(velocity, normal) * normal;
+		//acceleration -= tangentVel * FRICTION;
 	}
 	else
 	{
 		//free fall
-		acceleration = GRAVITY - (DRAG * velocity);
+		acceleration = GRAVITY;//-(DRAG * velocity);
 		isAccelerating = true;
 	}
 
@@ -64,9 +69,9 @@ void RollingBall::Update(float time)
 	{
 		//handle collision
 		ResolveCollision(*collisionObject);
-		velocity = velocity - ((RESTITUTION + 1) * (QVector3D::dotProduct(velocity, collisionObject->triangle->normal)) * collisionObject->triangle->normal);
-		//this should happen only if the objects do not seperate after the collision, which is the case when
-		if (velocity.length() < 0.01 || QVector3D::dotProduct(velocity, collisionObject->triangle->normal) < 0.01)
+		velocity = velocity - ((RESTITUTION + 1) * (QVector3D::dotProduct(velocity, collisionObject->normal)) * collisionObject->normal);
+
+		if (velocity.length() < 0.01 || QVector3D::dotProduct(velocity, collisionObject->normal) < 0.01)
 		{
 			collisionObject->distance = radius;
 			contactObject = collisionObject;
@@ -76,12 +81,15 @@ void RollingBall::Update(float time)
 	}
 	else
 	{
+
+	}
+	{
 		//Wasnt touching, is not touching now as there was no collision
 		if (contactObject == nullptr)
 			return;
 
 		//was touching, is still above the same triangle
-		if (collisionObject->triangle->normal.normalized() == contactObject->triangle->normal.normalized())
+		if (collisionObject->normal.normalized() == contactObject->normal.normalized())
 			return;
 
 		//was touching, is now above another triangle

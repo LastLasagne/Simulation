@@ -28,17 +28,34 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
         }
     }
 
-    TriangleSurface* surface = new TriangleSurface(assetPath + "pointCloudData.txt"); //terrain: change to pointCloudData
+    surface = new TriangleSurface(assetPath + "pointCloudData_Hill.txt"); //terrain: change to pointCloudData_Hill
     surface->setName("surface");
     mObjects.push_back(surface);
 
-    //terrain: comment out
- //   RollingBall* ball = new RollingBall();
- //   ball->setName("ball");
- //   ball->surface = surface;
- //   ball->scale(.1);
-	//ball->setPosition(0.1f, 0.1f, 2.0f);
- //   mObjects.push_back(ball);
+    RollingBall* ball = new RollingBall();
+    ball->setName("ball");
+    ball->scale(0.05);
+    ball->setPosition(1.5f, 1.5f, 5.0f);
+    //ball->setPosition(0.25f, 0.25f, 3.0f);
+    mObjects.push_back(ball);
+
+    RollingBall* ball2 = new RollingBall();
+    ball2->setName("ball2");
+    ball2->scale(0.05);
+    ball2->setPosition(2.0f, 0.5f, 3.0f);
+    mObjects.push_back(ball2);
+
+    RollingBall* ball3 = new RollingBall();
+    ball3->setName("ball3");
+    ball3->scale(0.05);
+    ball3->setPosition(0.5f, 1.5f, 3.0f);
+    mObjects.push_back(ball3);
+
+    RollingBall* ball4 = new RollingBall();
+    ball4->setName("ball4");
+    ball4->scale(0.05);
+    ball4->setPosition(2.5f, 1.5f, 3.0f);
+    mObjects.push_back(ball4);
 
     // **************************************
     // Objects in optional map
@@ -51,11 +68,15 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     //mCamera.pitch(320);
     //mCamera.yaw(-90);
     //terrain:
-     mCamera.setPosition(QVector3D(-0.5, -0.5, -5));
+     mCamera.setPosition(QVector3D(-0.5, -0.5, -10));
     //no pitch and yaw
 
     //Need access to our VulkanWindow so making a convenience pointer
     mVulkanWindow = dynamic_cast<VulkanWindow*>(w);
+}
+
+void Renderer::SpawnBall()
+{
 }
 
 //Automatically called by Qt on Renderer startup
@@ -315,17 +336,18 @@ void Renderer::startNextFrame()
     mVulkanWindow->handleInput();
     mCamera.update();               //input can have moved the camera
 
-    static auto startTime = std::chrono::high_resolution_clock::now();
+	if (mClockLastFrame.time_since_epoch().count() == 0)
+	    mClockLastFrame = std::chrono::high_resolution_clock::now();
 
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+    auto clockNow = std::chrono::high_resolution_clock::now();
+    auto timeSinceLastFrame = clockNow - mClockLastFrame;
+    float deltaTimeSeconds = std::chrono::duration_cast<std::chrono::duration<float>>(timeSinceLastFrame).count();
+    mClockLastFrame = clockNow;
 
     //game logic
     for (VisualObject* obj : mObjects) {
-        if (obj->getName() == "ball") {
-            if (RollingBall* ball = static_cast<RollingBall*>(obj)) {
-                ball->Update(time);
-            }
+        if (RollingBall* ball = static_cast<RollingBall*>(obj)) {
+            ball->Update(surface, deltaTimeSeconds);
         }
     }
 

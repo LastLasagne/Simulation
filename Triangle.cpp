@@ -48,7 +48,7 @@ CollisionObject* Triangle::TriangleSphereCollision(QVector3D p, float radius)
 		float z = QVector3D::dotProduct(weights, zVector);
 		float distance = p.z() - z;
 		bool colliding = distance < radius;
-		return new CollisionObject(colliding, this, distance);
+		return new CollisionObject(colliding, this->normal, distance);
 	}
 	return nullptr;
 }

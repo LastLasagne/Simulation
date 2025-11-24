@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "VisualObject.h"
 #include "Utilities.h"
+#include "TriangleSurface.h"
 
 class Renderer : public QVulkanWindowRenderer
 {
@@ -34,6 +35,8 @@ public:
 
     //Get Vulkan info - just for fun
     void getVulkanHWInfo();
+
+    void SpawnBall();
 
     std::vector<VisualObject*>& getObjects() { return mObjects; }
     std::unordered_map<std::string, VisualObject*>& getMap() { return mMap; }
@@ -79,6 +82,8 @@ private:
     friend class VulkanWindow;
 	std::vector<VisualObject*> mObjects;    //All objects in the program  
     std::unordered_map<std::string, VisualObject*> mMap;    // alternativ container
+    std::chrono::time_point<std::chrono::high_resolution_clock> mClockLastFrame{};
+    TriangleSurface* surface;
 
 	//Start of Uniforms and DescriptorSets
     BufferHandle createGeneralBuffer(const VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);

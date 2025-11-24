@@ -8,10 +8,10 @@ class Triangle;
 class CollisionObject
 {
 public:
-    CollisionObject(bool colliding, Triangle* tri, float d);
+    CollisionObject(bool colliding, QVector3D n, float d);
 
 	float distance;
-    Triangle* triangle;
+    QVector3D normal;
 	bool isColliding = false;
 };
 
