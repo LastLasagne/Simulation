@@ -36,7 +36,9 @@ public:
     //Get Vulkan info - just for fun
     void getVulkanHWInfo();
 
-    void SpawnBall();
+    void SpawnBall(QVector3D position, QVector3D rayStart, QVector3D rayEnd);
+
+    void CreateObjectAfterInitialization(VisualObject* object);
 
     std::vector<VisualObject*>& getObjects() { return mObjects; }
     std::unordered_map<std::string, VisualObject*>& getMap() { return mMap; }

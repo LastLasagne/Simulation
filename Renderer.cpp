@@ -70,8 +70,35 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mVulkanWindow = dynamic_cast<VulkanWindow*>(w);
 }
 
-void Renderer::SpawnBall()
+void Renderer::SpawnBall(QVector3D position, QVector3D rayStart, QVector3D rayEnd)
 {
+    int ballCount = 20;
+    for (int i = 0; i < ballCount; i++)
+    {
+        float t = static_cast<float>(i) / ballCount;
+
+		QVector3D position = rayStart + t * (rayEnd - rayStart);
+
+	    RollingBall* ball = new RollingBall();
+	    ball->setName("ball" + std::to_string(mObjects.size()));
+	    ball->scale(0.05f);
+	    ball->setPosition(position);
+        mObjects.push_back(ball);
+	    CreateObjectAfterInitialization(ball);
+    }
+}
+
+void Renderer::CreateObjectAfterInitialization(VisualObject* object)
+{
+    const VkPhysicalDeviceLimits* pdevLimits = &mWindow->physicalDeviceProperties()->limits;
+    const VkDeviceSize uniAlign = pdevLimits->minUniformBufferOffsetAlignment;
+    qDebug("Uniform buffer offset alignment is %u", (uint)uniAlign); //64 on Oles machine
+
+    createVertexBuffer(uniAlign, object);                //New version - more explicit to how Vulkan does it
+    //createBuffer(logicalDevice, uniAlign, *it);         //Old version 
+
+    if (object->getIndices().size() > 0) //If object has indices
+        createIndexBuffer(uniAlign, object);
 }
 
 //Automatically called by Qt on Renderer startup
@@ -321,7 +348,7 @@ void Renderer::initSwapChainResources()
     const QSize sz = mWindow->swapChainImageSize();
 
     //This sets the projection matrix - also when resizing the window:
-    mCamera.perspective(45.0f, sz.width() / (float) sz.height(), 0.01f, 500.0f);
+    mCamera.perspective(45.0f, sz.width() / (float) sz.height(), 0.000001f, 100.0f);
 }
 
 void Renderer::startNextFrame()
@@ -342,7 +369,7 @@ void Renderer::startNextFrame()
     //game logic
     for (VisualObject* obj : mObjects) {
         if (RollingBall* ball = static_cast<RollingBall*>(obj)) {
-            ball->Update(surface, deltaTimeSeconds);
+            //ball->Update(surface, deltaTimeSeconds);
         }
     }
 

@@ -31,24 +31,11 @@ void VulkanWindow::setCameraSpeed(float value)
 
 void VulkanWindow::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_C)
-    {
-        dynamic_cast<Renderer*>(mRenderer)->SpawnBall();
-    }
-
     if (event->key() == Qt::Key_G)
     {
-        //dynamic_cast<RenderWindow*>(mRenderWindow)->mObjects.at(mIndex)->move(-0.1f);
-        if(mSelectedObject)
-        {
-            qDebug("Move object");
-            mSelectedObject->move(-0.1f);
-        }
     }
     if(event->key() == Qt::Key_F)
     {
-        qDebug("Scaling object");
-        dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->scale(0.9f);
     }
     if (event->key() == Qt::Key_Escape)
     {
@@ -192,6 +179,8 @@ void VulkanWindow::mousePressEvent(QMouseEvent *event)
         mInput.LMB = true;
     if (event->button() == Qt::MiddleButton)
         mInput.MMB = true;
+	mInput.MOUSEX = event->pos().x();
+	mInput.MOUSEY = event->pos().y();
 }
 
 void VulkanWindow::mouseReleaseEvent(QMouseEvent *event)
@@ -243,5 +232,61 @@ void VulkanWindow::handleInput()
             mCamera->mCameraMovement.setY(mCamera->mCameraMovement.y() - mCameraSpeed); //down
         if (mInput.E)
             mCamera->mCameraMovement.setY(mCamera->mCameraMovement.y() + mCameraSpeed); //up
+    }
+
+    if (mInput.LMB)
+    {
+		Renderer* renderer = dynamic_cast<Renderer*>(mRenderer);
+
+		float width = QWindow::width();
+		float height = QWindow::height();
+        float x = (2.0f * mInput.MOUSEX / QWindow::width()) - 1.0f;
+        float y = (2.0f * mInput.MOUSEY / QWindow::height()) -1.0f;
+		QVector4D clip = QVector4D(x, y, 0.0f, 1.0f);
+
+        //far
+		QMatrix4x4 mProjectionMatrix;
+        mProjectionMatrix.setToIdentity();
+        mProjectionMatrix.perspective(22.5f, width / height, 1.0f, 100.0f);
+        mProjectionMatrix = mProjectionMatrix * clipCorrectionMatrix();
+		QMatrix4x4 invProj = mProjectionMatrix.inverted();
+
+		QVector4D eye = invProj * clip;
+        eye = QVector4D(eye.x(), eye.y(), -1.0f, 0.0);
+        QVector4D worldFar = mCamera->viewMatrix().inverted() * eye;
+
+
+        mProjectionMatrix.setToIdentity();
+        mProjectionMatrix.perspective(11.25, width / height, 1.0f, 100.0f);
+        mProjectionMatrix = mProjectionMatrix * clipCorrectionMatrix();
+        invProj = mProjectionMatrix.inverted();
+        eye = invProj * clip;
+        eye = QVector4D(eye.x(), eye.y(), -1.0f, 0.0);
+        QVector4D worldNear = mCamera->viewMatrix().inverted() * eye;
+
+		QVector3D farDir = (QVector3D(worldFar)).normalized();
+		QVector3D nearDir = (QVector3D(worldNear)).normalized();
+		QVector3D rayEnd = mCamera->mPosition + 20 * farDir;
+		QVector3D rayStart = mCamera->mPosition + 2 * nearDir;
+
+        //float ndc_x = (2.0f * mInput.MOUSEX) / QWindow::width() - 1.0f;
+        //float ndc_y = 1.0f - (2.0f * mInput.MOUSEY) / QWindow::height(); // Flip Y
+        //QVector4D clipNear = { ndc_x, ndc_y, 0.0f, 1.0f };
+        //QVector4D clipFar = { ndc_x, ndc_y, 1.0f, 1.0f };
+        //QMatrix4x4 invProj = mCamera->projectionMatrix().inverted();
+        //QMatrix4x4 invView = mCamera->viewMatrix().inverted();
+        //QVector4D eyeNear = invProj * clipNear;
+        //QVector4D eyeFar = invProj * clipFar;
+        //if (eyeNear[3] != 0.0f)
+        //    eyeNear /= eyeNear.w();
+
+        //if (eyeFar[3] != 0.0f)
+        //    eyeFar /= eyeFar.w();
+        //QVector3D worldNear = (invView * eyeNear).toVector3D();
+        //QVector3D worldFar = (invView * eyeFar).toVector3D();
+        //QVector3D dir = (worldFar - worldNear).normalized();
+
+        renderer->SpawnBall(mCamera->mPosition, rayStart, rayEnd);
+		mInput.LMB = false;
     }
 }
