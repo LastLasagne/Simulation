@@ -98,6 +98,17 @@ void RollingBall::Update(TriangleSurface* surface, float time)
 	}
 }
 
+bool RollingBall::TryPlace(TriangleSurface* surface, QVector3D pos)
+{
+	CollisionObject* collisionObject = surface->SurfaceSphereCollision(pos, radius);
+	if (collisionObject != nullptr && collisionObject->isColliding)
+	{
+		setPosition(pos);
+		return true;
+	}
+	return false;
+}
+
 void RollingBall::ResolveCollision(CollisionObject collisionObject)
 {
 	QVector3D normal = velocity.normalized();

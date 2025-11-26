@@ -36,7 +36,7 @@ public:
     //Get Vulkan info - just for fun
     void getVulkanHWInfo();
 
-    void SpawnBall(QVector3D position, QVector3D rayStart, QVector3D rayEnd);
+    void SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd);
 
     void CreateObjectAfterInitialization(VisualObject* object);
 

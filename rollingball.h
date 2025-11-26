@@ -10,6 +10,7 @@ class RollingBall : public oktaederClass
 public:
     RollingBall();
     void Update(TriangleSurface* surface, float time);
+	bool TryPlace(TriangleSurface* surface, QVector3D pos);
 	void UpdatePosition(float time) { setPosition(getPosition() + velocity * time); }
 	void ResolveCollision(CollisionObject collisionObject);
 	void scale(float s) {

@@ -70,22 +70,41 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mVulkanWindow = dynamic_cast<VulkanWindow*>(w);
 }
 
-void Renderer::SpawnBall(QVector3D position, QVector3D rayStart, QVector3D rayEnd)
+void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
 {
-    int ballCount = 20;
+    float scale = 0.01f;
+    int ballCount = 1 / 0.05f;
+    RollingBall* ball = new RollingBall();
+	ball->setName("ball" + std::to_string(mObjects.size()));
+	ball->scale(scale);
+
     for (int i = 0; i < ballCount; i++)
     {
         float t = static_cast<float>(i) / ballCount;
 
 		QVector3D position = rayStart + t * (rayEnd - rayStart);
+        if (ball->TryPlace(surface, position))
+        {
+            if (lod == 2)
+            {
+                mObjects.push_back(ball);
+	            CreateObjectAfterInitialization(ball);
+                return;
+            }
+            else
+            {
+                lod += 1;
+                float tBefore = static_cast<float>(i - 1) / ballCount;
 
-	    RollingBall* ball = new RollingBall();
-	    ball->setName("ball" + std::to_string(mObjects.size()));
-	    ball->scale(0.05f);
-	    ball->setPosition(position);
-        mObjects.push_back(ball);
-	    CreateObjectAfterInitialization(ball);
+                QVector3D newStart = rayStart + tBefore * (rayEnd - rayStart);
+                QVector3D newEnd = position;
+                SpawnBall(lod, newStart, newEnd);
+                break;
+            }
+        }
     }
+
+    delete ball;
 }
 
 void Renderer::CreateObjectAfterInitialization(VisualObject* object)
@@ -369,7 +388,7 @@ void Renderer::startNextFrame()
     //game logic
     for (VisualObject* obj : mObjects) {
         if (RollingBall* ball = static_cast<RollingBall*>(obj)) {
-            //ball->Update(surface, deltaTimeSeconds);
+            ball->Update(surface, deltaTimeSeconds);
         }
     }
 
