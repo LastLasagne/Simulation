@@ -17,7 +17,7 @@ Triangle::Triangle(QVector3D p1, QVector3D p2, QVector3D p3)
 
 	QVector3D v1 = p2 - p1;
 	QVector3D v2 = p3 - p1;
-	normal = QVector3D::crossProduct(v1, v2);
+	normal = QVector3D::crossProduct(v2, v1);
 	normal.normalize();
 }
 

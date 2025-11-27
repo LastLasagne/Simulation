@@ -9,7 +9,6 @@ void RollingBall::FixedUpdate()
 
 	//handle movement
 	QVector3D acceleration = QVector3D(0, 0, 0);
-	bool isAccelerating = false;
 	if (contactObject != nullptr)
 	{
 		//roll down
@@ -17,9 +16,7 @@ void RollingBall::FixedUpdate()
 		//QVector3D NORMAL = (normal * normal.z());
 
 		acceleration = GRAVITY - ((QVector3D::dotProduct(GRAVITY, normal)) * normal);
-		//float gravityLength = GRAVITY.length();
 		//QVector3D accelerating = mass * gravityLength * ((QVector3D(normal.x() * normal.z(), normal.y() * normal.z(), normal.z() * normal.z() - 1)) );
-		isAccelerating = abs(acceleration.length()) > 0.005;
 		//QVector3D accelerationForce = NORMAL + GRAVITY.normalized();
 
 		////todo fix friction
@@ -28,7 +25,7 @@ void RollingBall::FixedUpdate()
 
 		//acceleration = (accelerationForce - frictionForce) / mass;
 		//acceleration = accelerationDirection * (GRAVITY.length() * (accelerationValue - frictionValue));
-
+		
 		QVector3D tangentVel = velocity - QVector3D::dotProduct(velocity, normal) * normal;
 		acceleration -= tangentVel * FRICTION;
 	}
@@ -36,11 +33,11 @@ void RollingBall::FixedUpdate()
 	{
 		//free fall
 		acceleration = GRAVITY;//-(DRAG * velocity);
-		isAccelerating = true;
 	}
 
-	//stop if not accelerating and friction higher then velocity
-	if (isAccelerating == false && velocity.length() < acceleration.length())
+	float accelerationLength = acceleration.length();
+	float velocityLength = velocity.length();
+	if (accelerationLength < 1.0f && velocityLength < 0.1)
 	{
 		velocity = QVector3D(0, 0, 0);
 		isResting = true;

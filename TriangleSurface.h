@@ -23,7 +23,7 @@ private:
     int colCount = 0;
     int rowCount = 0;
 
-	const float RESOLUTION = 0.05f;
+    const float RESOLUTION = 0.1f;
 	const float HEIGHT_SCALE = 2.0f;
 
 public:

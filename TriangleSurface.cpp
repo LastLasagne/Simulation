@@ -130,7 +130,6 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 		int x = i % colCount;
 		int y = i / colCount;
 
-		float center = SampleHeight(x, y);
 		float left = SampleHeight(x - 1, y);
 		float right = SampleHeight(x + 1, y);
 		float down = SampleHeight(x, y - 1);
@@ -142,6 +141,8 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 		// normal = cross(dy, dx) (order matters)
 		
 		QVector3D normal = QVector3D::crossProduct(dy, dx).normalized();
+
+		float center = SampleHeight(x, y);
 
 		mVertices.push_back(Vertex(
 			x * RESOLUTION,
