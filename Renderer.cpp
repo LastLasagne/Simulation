@@ -50,6 +50,7 @@ void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
     float scale = 0.05f;
     int ballCount = 1 / scale;
     RollingBall* ball = new RollingBall();
+	ball->surface = surface;
 	ball->setName("ball" + std::to_string(mObjects.size()));
 	ball->scale(scale);
 
@@ -58,10 +59,11 @@ void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
         float t = static_cast<float>(i) / ballCount;
 
 		QVector3D position = rayStart + t * (rayEnd - rayStart);
-        if (ball->TryPlace(surface, position))
+        if (ball->TryPlace(position))
         {
             if (lod == 2)
             {
+                mBalls.push_back(ball);
                 mObjects.push_back(ball);
 	            CreateObjectAfterInitialization(ball);
                 return;
@@ -364,10 +366,8 @@ void Renderer::startNextFrame()
     mClockLastFrame = clockNow;
 
     //game logic
-    for (VisualObject* obj : mObjects) {
-        if (RollingBall* ball = static_cast<RollingBall*>(obj)) {
-            ball->Update(surface, deltaTimeSeconds);
-        }
+    for (RollingBall* obj : mBalls) {
+        obj->Update(deltaTimeSeconds);
     }
 
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();

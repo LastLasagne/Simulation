@@ -8,6 +8,7 @@
 #include "VisualObject.h"
 #include "Utilities.h"
 #include "TriangleSurface.h"
+#include "RollingBall.h"
 
 class Renderer : public QVulkanWindowRenderer
 {
@@ -83,6 +84,7 @@ protected:
 private:
     friend class VulkanWindow;
 	std::vector<VisualObject*> mObjects;    //All objects in the program  
+	std::vector<RollingBall*> mBalls;      //All rolling balls
     std::unordered_map<std::string, VisualObject*> mMap;    // alternativ container
     std::chrono::time_point<std::chrono::high_resolution_clock> mClockLastFrame{};
     TriangleSurface* surface;

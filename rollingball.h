@@ -8,9 +8,12 @@
 class RollingBall : public oktaederClass
 {
 public:
-    RollingBall();
-    void Update(TriangleSurface* surface, float time);
-	bool TryPlace(TriangleSurface* surface, QVector3D pos);
+	RollingBall();
+
+	void FixedUpdate();
+    void Update(float time);
+
+	bool TryPlace(QVector3D pos);
 	void UpdatePosition(float time) { setPosition(getPosition() + velocity * time); }
 	void ResolveCollision(CollisionObject collisionObject);
 	void scale(float s) {
@@ -24,11 +27,14 @@ public:
 	QVector3D velocity = QVector3D(0, 0, 0);
     
 	CollisionObject* contactObject = nullptr;
-
+	TriangleSurface* surface;
 	float radius = 1.0f;
 	float mass = 10.0f;
 
 	bool isResting = false;
+
+	float timeAccumulator = 0.0f;
+	const float dt = 1.0 / 30.0; // fixed physics step
 };
 
 #endif // ROLLINGBALL_H

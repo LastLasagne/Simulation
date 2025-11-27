@@ -1,15 +1,14 @@
 #include "rollingball.h"
 
-RollingBall::RollingBall() {}
+RollingBall::RollingBall() { }
 
-void RollingBall::Update(TriangleSurface* surface, float time)
+void RollingBall::FixedUpdate()
 {
-	qDebug() << time;
 	if (isResting)
 		return;
 
 	//handle movement
-	QVector3D acceleration = QVector3D(0,0,0);	
+	QVector3D acceleration = QVector3D(0, 0, 0);
 	bool isAccelerating = false;
 	if (contactObject != nullptr)
 	{
@@ -24,14 +23,14 @@ void RollingBall::Update(TriangleSurface* surface, float time)
 		//QVector3D accelerationForce = NORMAL + GRAVITY.normalized();
 
 		////todo fix friction
-		//float frictionValue = NORMAL.length() * FRICTION;
+		//float frictionValue = normal.length() * FRICTION;
 		//QVector3D frictionForce = QVector3D(0, 0, 0); //velocity.normalized()* frictionValue;
 
 		//acceleration = (accelerationForce - frictionForce) / mass;
 		//acceleration = accelerationDirection * (GRAVITY.length() * (accelerationValue - frictionValue));
-		// 
-		//QVector3D tangentVel = velocity - QVector3D::dotProduct(velocity, normal) * normal;
-		//acceleration -= tangentVel * FRICTION;
+
+		QVector3D tangentVel = velocity - QVector3D::dotProduct(velocity, normal) * normal;
+		acceleration -= tangentVel * FRICTION;
 	}
 	else
 	{
@@ -47,10 +46,9 @@ void RollingBall::Update(TriangleSurface* surface, float time)
 		isResting = true;
 		return;
 	}
-		
-	velocity += acceleration * time;	
-	UpdatePosition(time);
 
+	velocity += acceleration * dt;
+	UpdatePosition(dt);
 
 	//handle rotation
 	//rotate(velocity.length() * time * 180 / 3.14f / 0.1f, QVector3D::crossProduct(normal, velocity));
@@ -98,7 +96,17 @@ void RollingBall::Update(TriangleSurface* surface, float time)
 	}
 }
 
-bool RollingBall::TryPlace(TriangleSurface* surface, QVector3D pos)
+void RollingBall::Update(float time)
+{
+	timeAccumulator += time;
+	while (timeAccumulator >= dt)
+	{
+		FixedUpdate();
+		timeAccumulator -= dt;
+	}
+}
+
+bool RollingBall::TryPlace(QVector3D pos)
 {
 	CollisionObject* collisionObject = surface->SurfaceSphereCollision(pos, radius);
 	if (collisionObject != nullptr && collisionObject->isColliding)
