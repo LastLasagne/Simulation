@@ -125,7 +125,7 @@ private:
     struct {
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;
-		//VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };    //also should have had a spesific pipeline layout
+		VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };    //also should have had a spesific pipeline layout
         VkPipeline pipeline{ VK_NULL_HANDLE };
     } mColorMaterial;
 };

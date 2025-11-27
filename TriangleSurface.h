@@ -29,12 +29,12 @@ private:
 public:
     TriangleSurface();
     TriangleSurface(const std::string& filename);
-    TriangleSurface(bool toggle, const std::string& filename);
+    //TriangleSurface(bool toggle, const std::string& filename);
 
     CollisionObject* SurfaceSphereCollision(QVector3D position, float radius);
 
-    float GetHeight(int index);
-	void CalculateHeights();
+    float SampleHeight(int x, int y);
+    void CalculateHeights();
 };
 
 #endif // TRIANGLESURFACE_H

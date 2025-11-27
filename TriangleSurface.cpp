@@ -28,57 +28,58 @@ TriangleSurface::TriangleSurface() : VisualObject()
 	mMatrix.translate(0.5f, 0.1f, 0.1f);
 }
 
-TriangleSurface::TriangleSurface(bool toggle, const std::string &filename)
-{
-    std::ifstream inn(filename);
-    if (!inn.is_open())
-	{
-		qDebug() << "Failed to open file: " << QString::fromStdString(filename);
-		return;
-	}
-	// read input from math part of compulsory
-    int n;  
-    Vertex v;
-    inn >> n;
-
-	float minX = FLT_MAX;
-	float minY = FLT_MAX;
-	float maxX = -FLT_MAX;
-	float maxY = -FLT_MAX;
-
-    for (auto i=0; i<n; i++)
-    {
-        inn >> v;
-		qDebug() << "Read vertex: " << v.x << v.y << v.z << v.r << v.g << v.b << v.u << v.v;
-        mVertices.push_back(v);
-		if (v.x < minX)
-		{
-			min.x = v.x;
-			minX = v.x;
-		}
-		if (v.y < minY)
-		{
-			min.y = v.y;
-			minY = v.y;
-		}
-		if (v.x > maxX)
-		{
-			max.x = v.x;
-			maxX = v.x;
-		}
-		if (v.y > maxY)
-		{
-			max.y = v.y;
-			maxY = v.y;
-		}
-        //qDebug() << v.x << v.y << v.z;
-    }
-    inn.close();
-	mIndices = std::vector<uint32_t>();
-}
+//TriangleSurface::TriangleSurface(bool toggle, const std::string &filename)
+//{
+//    std::ifstream inn(filename);
+//    if (!inn.is_open())
+//	{
+//		qDebug() << "Failed to open file: " << QString::fromStdString(filename);
+//		return;
+//	}
+//	// read input from math part of compulsory
+//    int n;  
+//    Vertex v;
+//    inn >> n;
+//
+//	float minX = FLT_MAX;
+//	float minY = FLT_MAX;
+//	float maxX = -FLT_MAX;
+//	float maxY = -FLT_MAX;
+//
+//    for (auto i=0; i<n; i++)
+//    {
+//        inn >> v;
+//		qDebug() << "Read vertex: " << v.x << v.y << v.z << v.r << v.g << v.b << v.u << v.v;
+//        mVertices.push_back(v);
+//		if (v.x < minX)
+//		{
+//			min.x = v.x;
+//			minX = v.x;
+//		}
+//		if (v.y < minY)
+//		{
+//			min.y = v.y;
+//			minY = v.y;
+//		}
+//		if (v.x > maxX)
+//		{
+//			max.x = v.x;
+//			maxX = v.x;
+//		}
+//		if (v.y > maxY)
+//		{
+//			max.y = v.y;
+//			maxY = v.y;
+//		}
+//        //qDebug() << v.x << v.y << v.z;
+//    }
+//    inn.close();
+//	mIndices = std::vector<uint32_t>();
+//}
 
 TriangleSurface::TriangleSurface(const std::string& filename)
 {
+	drawType = 1;
 	std::ifstream inn(filename);
 	if (!inn.is_open())
 	{
@@ -96,7 +97,6 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 	for (auto i = 0; i < n; i++)
 	{
 		inn >> v;
-		//qDebug() << "Read vertex: " << v.x << v.y << v.z << v.r << v.g << v.b << v.u << v.v;
 		points.push_back(v);
 	}
 	inn.close();
@@ -127,17 +127,27 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 
 	for (int i = 0; i < size; i++)
 	{
-		float height = (heights[i] - min.z);
-		float heightColor = height / (max.z - min.z);
-
 		int x = i % colCount;
 		int y = i / colCount;
+
+		float center = SampleHeight(x, y);
+		float left = SampleHeight(x - 1, y);
+		float right = SampleHeight(x + 1, y);
+		float down = SampleHeight(x, y - 1);
+		float up = SampleHeight(x, y + 1);
+
+		QVector3D dx(2.0f * RESOLUTION, 0, right - left);
+		QVector3D dy(0, 2.0f * RESOLUTION, up - down);
+
+		// normal = cross(dy, dx) (order matters)
+		
+		QVector3D normal = QVector3D::crossProduct(dy, dx).normalized();
 
 		mVertices.push_back(Vertex(
 			x * RESOLUTION,
 			y * RESOLUTION,
-			height * HEIGHT_SCALE,
-			heightColor, heightColor, heightColor,
+			center,
+			normal.x(), normal.y(), normal.z(),
 			0.0f, 0.0f));
 	}
 
@@ -226,6 +236,15 @@ CollisionObject* TriangleSurface::SurfaceSphereCollision(QVector3D position, flo
 
 	return boundsCollision;
 }
+
+float TriangleSurface::SampleHeight(int x, int y)
+{
+	x = std::max(0, std::min(colCount - 1, x));
+	y = std::max(0, std::min(rowCount - 1, y));
+
+	int idx = x + y * colCount;
+	return (heights[idx] - min.z) * HEIGHT_SCALE;
+};
 
 void TriangleSurface::CalculateHeights()
 {

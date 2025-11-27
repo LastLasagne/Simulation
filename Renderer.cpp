@@ -28,34 +28,9 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
         }
     }
 
-    surface = new TriangleSurface(assetPath + "pointCloudData_Hill.txt"); //terrain: change to pointCloudData_Hill
+    surface = new TriangleSurface(assetPath + "pointCloudData_Hill.txt");
     surface->setName("surface");
     mObjects.push_back(surface);
-
-    //RollingBall* ball = new RollingBall();
-    //ball->setName("ball");
-    //ball->scale(0.05);
-    //ball->setPosition(1.5f, 1.5f, 5.0f);
-    ////ball->setPosition(0.25f, 0.25f, 3.0f);
-    //mObjects.push_back(ball);
-
-    //RollingBall* ball2 = new RollingBall();
-    //ball2->setName("ball2");
-    //ball2->scale(0.05);
-    //ball2->setPosition(2.0f, 0.5f, 3.0f);
-    //mObjects.push_back(ball2);
-
-    //RollingBall* ball3 = new RollingBall();
-    //ball3->setName("ball3");
-    //ball3->scale(0.05);
-    //ball3->setPosition(0.5f, 1.5f, 3.0f);
-    //mObjects.push_back(ball3);
-
-    //RollingBall* ball4 = new RollingBall();
-    //ball4->setName("ball4");
-    //ball4->scale(0.05);
-    //ball4->setPosition(2.5f, 1.5f, 3.0f);
-    //mObjects.push_back(ball4);
 
     // **************************************
     // Objects in optional map
@@ -72,8 +47,8 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
 
 void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
 {
-    float scale = 0.01f;
-    int ballCount = 1 / 0.05f;
+    float scale = 0.05f;
+    int ballCount = 1 / scale;
     RollingBall* ball = new RollingBall();
 	ball->setName("ball" + std::to_string(mObjects.size()));
 	ball->scale(scale);
@@ -253,7 +228,6 @@ void Renderer::initResources()
     VkGraphicsPipelineCreateInfo pipelineInfo{};    //Will use this variable a lot in the next 100s of lines
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.stageCount = 2; //vertex and fragment shader
-    pipelineInfo.pStages = shaderStagesC;
     pipelineInfo.pVertexInputState = &vertexInputInfo;
 
     // The viewport and scissor will be set dynamically via vkCmdSetViewport/Scissor in setRenderPassParameters().
@@ -315,21 +289,25 @@ void Renderer::initResources()
     dynamic.pDynamicStates = dynamicEnable;
     pipelineInfo.pDynamicState = &dynamic;
 
-    pipelineInfo.layout = mPipelineLayout;
+	mColorMaterial.pipeline = mPipeline1;                       // reusing most of the settings from the first pipeline
+    mColorMaterial.pipelineLayout = mPipelineLayout;          // using the same pipeline layout
+	pipelineInfo.layout = mColorMaterial.pipelineLayout;
+    pipelineInfo.pStages = shaderStagesC;
     pipelineInfo.renderPass = mWindow->defaultRenderPass();
 
-    result = mDeviceFunctions->vkCreateGraphicsPipelines(logicalDevice, mPipelineCache, 1, &pipelineInfo, nullptr, &mPipeline1);
+    result = mDeviceFunctions->vkCreateGraphicsPipelines(logicalDevice, mPipelineCache, 1, &pipelineInfo, nullptr, &mColorMaterial.pipeline);
     if (result != VK_SUCCESS)
         qFatal("Failed to create graphics pipeline: %d", result);
 
 	//Making a pipeline for drawing lines
-	mColorMaterial.pipeline = mPipeline1;                       // reusing most of the settings from the first pipeline
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;   // draw lines
     rasterization.polygonMode = VK_POLYGON_MODE_FILL;           // VK_POLYGON_MODE_LINE will make a wireframe; VK_POLYGON_MODE_FILL
     rasterization.lineWidth = 5.0f;
+
     pipelineInfo.pInputAssemblyState = &inputAssembly;
-    pipelineInfo.pStages = shaderStagesC;
-    result = mDeviceFunctions->vkCreateGraphicsPipelines(logicalDevice, mPipelineCache, 1, &pipelineInfo, nullptr, &mColorMaterial.pipeline);
+    pipelineInfo.pStages = shaderStagesT;
+    pipelineInfo.layout = mPipelineLayout;
+    result = mDeviceFunctions->vkCreateGraphicsPipelines(logicalDevice, mPipelineCache, 1, &pipelineInfo, nullptr, &mPipeline1);
     if (result != VK_SUCCESS)
         qFatal("Failed to create graphics pipeline: %d", result);
 
@@ -398,8 +376,6 @@ void Renderer::startNextFrame()
 
     VkDeviceSize vbOffset{ 0 };     //Offsets into buffer being bound
 
-    mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, 
-        &mDescriptorSet, 0, nullptr);
 
     setViewProjectionMatrix();   //Update the view and projection matrix in the Uniform
 
@@ -407,10 +383,16 @@ void Renderer::startNextFrame()
     for (std::vector<VisualObject*>::iterator it=mObjects.begin(); it!=mObjects.end(); it++)
     {
         //Draw type
-		if ((*it)->getDrawType() == 0)
-			mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline1);
-		else
-			mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mColorMaterial.pipeline);
+        if ((*it)->getDrawType() == 0)
+        {
+            mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mColorMaterial.pipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
+			mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mColorMaterial.pipeline); //fill uses color
+        }
+        else
+        {
+            mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
+			mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline1); //lines use texture
+        }
 
         QMatrix4x4 mvp = mCamera.projectionMatrix() * mCamera.viewMatrix() * (*it)->getMatrix();
         setModelMatrix((*it)->getMatrix()); //mvp);
@@ -475,6 +457,12 @@ void Renderer::setViewProjectionMatrix()
     temp = temp * mWindow->clipCorrectionMatrix();  //Correcting for Vulkans -Y
 	//Adding 64 bytes to the uniform buffer location to get to the projection matrix position
     memcpy(static_cast<char*>(mUniformBufferLocation) + 64, temp.constData(), 64);
+
+    QVector3D lightPos = QVector3D(10, 10, 10);
+    memcpy(static_cast<char*>(mUniformBufferLocation) + 64 + 64, &lightPos, sizeof(QVector3D));
+
+	QVector3D camPos = mCamera.mPosition;
+    memcpy(static_cast<char*>(mUniformBufferLocation) + 64 + 64 + sizeof(QVector3D), &camPos, sizeof(QVector3D));
 
     /************ NB ************
     Remember to go into
@@ -690,7 +678,7 @@ void Renderer::createDescriptorSetLayouts()
 
 void Renderer::createUniformBuffer()
 {
-    VkDeviceSize bufferSize = 64 + 64;      // two 4x4 matrices
+    VkDeviceSize bufferSize = 64 + 64 + sizeof(QVector3D) + sizeof(QVector3D);      // two 4x4 matrices
 
     mUniformBuffer = createGeneralBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -717,7 +705,7 @@ void Renderer::createDescriptorSet()
     VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = mUniformBuffer.mBuffer;
     bufferInfo.offset = 0;
-    bufferInfo.range = 64 + 64;      // two 4x4 matrices
+    bufferInfo.range = 64 + 64 + sizeof(QVector3D) + sizeof(QVector3D);      // two 4x4 matrices
 
     VkWriteDescriptorSet descriptorWrite{};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
