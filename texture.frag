@@ -1,6 +1,6 @@
 #version 450
 
-layout(location = 0) in vec2 vTexCoord;
+layout(location = 0) in vec3 vColor;
 layout(location = 1) in vec3 vNormal;
 layout(location = 2) in vec3 vFragPos;
 layout(location = 3) in vec3 camPos;
@@ -29,9 +29,7 @@ void main()
     float spec = pow(max(dot(V, R), 0.0), shininess);
     vec3 specular = spec * lightColor * 0.5;          // reduce specular strength
 
-    vec3 albedo = vec3(1.0,1.0,1.0); //texture(textureSampler, vTexCoord).rgb;
-
-    vec3 color = (ambientColor + diffuse + specular) * albedo;
+    vec3 color = (ambientColor + diffuse + specular) * vColor;
 
     fragColor = vec4(color, 1.0);
 }

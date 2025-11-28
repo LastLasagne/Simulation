@@ -12,16 +12,22 @@ struct  Vertex {
     float x;    //Position
     float y;
     float z;
-	float r;	//Color
+	float nx;	//Normal
+    float ny;
+    float nz;
+	float r;	//Vertex color
     float g;
     float b;
-	float u;	//Texture coordinates (UV)
-    float v;
+
+    float friction;
 
 	Vertex() = default;
-    Vertex(QVector3D pos, QVector3D normal, QVector2D uv);
-    Vertex(float x, float y, float z, float r, float g, float b, float u, float v)
-        : x(x), y(y), z(z), r(r), g(g), b(b), u(u), v(v) {}
+    Vertex(float x, float y, float z, float nx, float ny, float nz, float oldU, float oldV)
+        : x(x), y(y), z(z), nx(nx), ny(ny), nz(nz), r(1.0f), g(1.0f), b(1.0f), friction(0.0f) {}
+    Vertex(float x, float y, float z, float nx, float ny, float nz, float r, float g, float b)
+        : x(x), y(y), z(z), nx(nx), ny(ny), nz(nz), r(r), g(g), b(b), friction(0.0f) {}
+    Vertex(QVector3D pos, QVector3D normal, QVector3D color);
+    Vertex(QVector3D pos, QVector3D normal, QVector2D oldUV);
 
     //! Overloaded ostream operator which writes all vertex data on an open textfile stream
     friend std::ostream& operator<< (std::ostream&, const Vertex&);

@@ -144,12 +144,23 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 
 		float center = SampleHeight(x, y);
 
-		mVertices.push_back(Vertex(
+		float friction = 0.1f;
+		QVector3D color = { 0.5f, 0.25f, 0.0f };
+		float width = 5.0f;
+		if (x > width && y > width && y < rowCount - width && x < colCount - width)
+		{
+			friction = 3.0f;
+			color = { 0.0f, 1.0f, 0.0f };
+		}
+
+		Vertex vertex = Vertex(
 			x * RESOLUTION,
 			y * RESOLUTION,
 			center,
 			normal.x(), normal.y(), normal.z(),
-			0.0f, 0.0f));
+			color.x(), color.y(), color.z());
+		vertex.friction = friction;
+		mVertices.push_back(vertex);
 	}
 
 	for (int y = 0; y < rowCount - 1; y++)
@@ -182,11 +193,7 @@ CollisionObject* TriangleSurface::SurfaceSphereCollision(QVector3D position, flo
 			Vertex* v1 = &mVertices[i];
 			Vertex* v2 = &mVertices[i + 1];
 			Vertex* v3 = &mVertices[i + 2];
-			// Convert Vertex to QVector3D
-			QVector3D p1(v1->x, v1->y, v1->z);
-			QVector3D p2(v2->x, v2->y, v2->z);
-			QVector3D p3(v3->x, v3->y, v3->z);
-			Triangle* tri = new Triangle(p1, p2, p3);
+			Triangle* tri = new Triangle(v1, v2, v3);
 			CollisionObject* collision = tri->TriangleSphereCollision(position, radius);
 			if (collision != nullptr)
 				return collision;
@@ -198,11 +205,7 @@ CollisionObject* TriangleSurface::SurfaceSphereCollision(QVector3D position, flo
 		Vertex* v1 = &mVertices[mIndices[i]];
 		Vertex* v2 = &mVertices[mIndices[i + 1]];
 		Vertex* v3 = &mVertices[mIndices[i + 2]];
-		// Convert Vertex to QVector3D
-		QVector3D p1(v1->x, v1->y, v1->z);
-		QVector3D p2(v2->x, v2->y, v2->z);
-		QVector3D p3(v3->x, v3->y, v3->z);
-		Triangle* tri = new Triangle(p1, p2, p3);
+		Triangle* tri = new Triangle(v1, v2, v3);
 		CollisionObject* collision = tri->TriangleSphereCollision(position, radius);
 		if (collision != nullptr)
 			return collision;
@@ -233,7 +236,7 @@ CollisionObject* TriangleSurface::SurfaceSphereCollision(QVector3D position, flo
 		normal += QVector3D(0, -1, 0);
 	}
 
-	CollisionObject* boundsCollision = new CollisionObject(true, normal, distance);
+	CollisionObject* boundsCollision = new CollisionObject(true, normal, distance, 0.0f);
 
 	return boundsCollision;
 }

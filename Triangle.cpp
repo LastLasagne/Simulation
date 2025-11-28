@@ -21,6 +21,24 @@ Triangle::Triangle(QVector3D p1, QVector3D p2, QVector3D p3)
 	normal.normalize();
 }
 
+Triangle::Triangle(Vertex* v1, Vertex* v2, Vertex* v3)
+{
+	mVertices.push_back(*v1);
+	mVertices.push_back(*v2);
+	mVertices.push_back(*v3);
+	// Convert Vertex to QVector3D
+	QVector3D p1(v1->x, v1->y, v1->z);
+	QVector3D p2(v2->x, v2->y, v2->z);
+	QVector3D p3(v3->x, v3->y, v3->z);
+
+	QVector3D a = p2 - p1;
+	QVector3D b = p3 - p1;
+	normal = QVector3D::crossProduct(b, a);
+	normal.normalize();
+
+	friction = (v1->friction + v2->friction + v3->friction) / 3.0f;
+}
+
 CollisionObject* Triangle::TriangleSphereCollision(QVector3D p, float radius)
 {
 	Vertex v0 = mVertices[0];
@@ -48,7 +66,7 @@ CollisionObject* Triangle::TriangleSphereCollision(QVector3D p, float radius)
 		float z = QVector3D::dotProduct(weights, zVector);
 		float distance = p.z() - z;
 		bool colliding = distance < radius;
-		return new CollisionObject(colliding, this->normal, distance);
+		return new CollisionObject(colliding, this->normal, distance, this->friction);
 	}
 	return nullptr;
 }

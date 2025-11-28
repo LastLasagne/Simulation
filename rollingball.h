@@ -22,7 +22,7 @@ public:
 	}
 	const QVector3D GRAVITY = QVector3D(0, 0, -9.81);
 	const float RESTITUTION = 0.0f; //Coefficient of restitution
-	const float FRICTION = 0.9f; //Coefficient of friction
+	const float FRICTION = 0.0f; //Coefficient of friction
 	const float DRAG = 0.05f; //Coefficient of air resistance
 	QVector3D velocity = QVector3D(0, 0, 0);
     

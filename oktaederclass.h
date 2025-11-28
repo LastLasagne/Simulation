@@ -1,6 +1,8 @@
 #ifndef OKTAEDERCLASS_H
 #define OKTAEDERCLASS_H
-#include "../../../../../Users/doppe/Downloads/oktaeder_copy/oktaeder_copy/oktaeder/ExamCode/VisualObject.h"
+#include "VisualObject.h"
+#include "Vertex.h"
+
 class oktaederClass: public VisualObject
 {
 public:

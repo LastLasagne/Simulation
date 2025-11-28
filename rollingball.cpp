@@ -27,7 +27,7 @@ void RollingBall::FixedUpdate()
 		//acceleration = accelerationDirection * (GRAVITY.length() * (accelerationValue - frictionValue));
 		
 		QVector3D tangentVel = velocity - QVector3D::dotProduct(velocity, normal) * normal;
-		acceleration -= tangentVel * FRICTION;
+		acceleration -= tangentVel * contactObject->friction;
 	}
 	else
 	{

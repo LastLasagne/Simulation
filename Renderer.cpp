@@ -141,14 +141,14 @@ void Renderer::initResources()
 	vertexAttrDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	vertexAttrDesc[0].offset = 0;
 
-	vertexAttrDesc[1].location = 1;     //color or normal
+	vertexAttrDesc[1].location = 1;     //normal
 	vertexAttrDesc[1].binding = 0;
 	vertexAttrDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 	vertexAttrDesc[1].offset = 3 * sizeof(float);           // could use offsetof(Vertex, r); from <cstddef>
 
-	vertexAttrDesc[2].location = 2;	    //UV
+	vertexAttrDesc[2].location = 2;	    //Color
 	vertexAttrDesc[2].binding = 0;
-	vertexAttrDesc[2].format = VK_FORMAT_R32G32_SFLOAT;
+	vertexAttrDesc[2].format = VK_FORMAT_R32G32B32_SFLOAT;
 	vertexAttrDesc[2].offset = 6 * sizeof(float);           // 6 floats before the UVs are found
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};	    // C++11: {} is the same as memset(&bufferInfo, 0, sizeof(bufferInfo));
