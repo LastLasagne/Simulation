@@ -111,8 +111,8 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 	{
 		Point p = points[i];
 
-		float xIndex = static_cast<int>((p.x - min.x) / RESOLUTION);
-		float yIndex = static_cast<int>((p.y - min.y) / RESOLUTION);
+		int xIndex = static_cast<int>((p.x - min.x) / RESOLUTION);
+		int yIndex = static_cast<int>((p.y - min.y) / RESOLUTION);
 
 		//fix so no stretching occurs on the outsides
 
@@ -186,59 +186,76 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 
 CollisionObject* TriangleSurface::SurfaceSphereCollision(QVector3D position, float radius)
 {
-	if (mIndices.size() == 0)
+	int x = static_cast<int>((position.x() - min.x) / RESOLUTION);
+	int y = static_cast<int>((position.y() - min.y) / RESOLUTION);
+
+	if (x < 0 || x > colCount + 1 || y < 0 || y > rowCount + 1)
 	{
-		for (int i = 0; i < mVertices.size(); i += 3)
-		{
-			Vertex* v1 = &mVertices[i];
-			Vertex* v2 = &mVertices[i + 1];
-			Vertex* v3 = &mVertices[i + 2];
-			Triangle* tri = new Triangle(v1, v2, v3);
-			CollisionObject* collision = tri->TriangleSphereCollision(position, radius);
-			if (collision != nullptr)
-				return collision;
-		}
+		return nullptr;
+		//float distance = 0.0f;
+		//QVector3D normal = QVector3D(0, 0, 0);
+
+		//if (position.x() < min.x)
+		//{
+		//	distance += (min.x - position.x()) * (min.x - position.x());
+		//	normal += QVector3D(1, 0, 0);
+		//}
+		//else if (position.x() > max.x)
+		//{
+		//	distance += (position.x() - max.x) * (position.x() - max.x);
+		//	normal += QVector3D(-1, 0, 0);
+		//}
+
+		//if (position.y() < min.y)
+		//{
+		//	distance += (min.y - position.y()) * (min.y - position.y());
+		//	normal += QVector3D(0, 1, 0);
+		//}
+		//else if (position.y() > max.y)
+		//{
+		//	distance += (position.y() - max.y) * (position.y() - max.y);
+		//	normal += QVector3D(0, -1, 0);
+		//}
+
+		//CollisionObject* boundsCollision = new CollisionObject(true, normal, distance, 0.0f);
+
+		//return boundsCollision;
 	}
 
-	for (int i = 0; i < mIndices.size(); i += 3)
-	{
-		Vertex* v1 = &mVertices[mIndices[i]];
-		Vertex* v2 = &mVertices[mIndices[i + 1]];
-		Vertex* v3 = &mVertices[mIndices[i + 2]];
-		Triangle* tri = new Triangle(v1, v2, v3);
-		CollisionObject* collision = tri->TriangleSphereCollision(position, radius);
-		if (collision != nullptr)
-			return collision;
-	}
+	x = std::min(colCount - 2, x);
+	y = std::min(y, rowCount - 2);
 
-	float distance = 0.0f;
-	QVector3D normal = QVector3D(0,0,0);
+	//if (mIndices.size() == 0)
+	//{
+	//	for (int i = 0; i < mVertices.size(); i += 3)
+	//	{
+	//		Vertex* v1 = &mVertices[i];
+	//		Vertex* v2 = &mVertices[i + 1];
+	//		Vertex* v3 = &mVertices[i + 2];
+	//		Triangle* tri = new Triangle(v1, v2, v3);
+	//		CollisionObject* collision = tri->TriangleSphereCollision(position, radius);
+	//		if (collision != nullptr)
+	//			return collision;
+	//	}
+	//}
 
-	if (position.x() < min.x)
-	{
-		distance += (min.x - position.x()) * (min.x - position.x());
-		normal += QVector3D(1, 0, 0);
-	}
-	else if (position.x() > max.x)
-	{
-		distance += (position.x() - max.x) * (position.x() - max.x);
-		normal += QVector3D(-1, 0, 0);
-	}
+	int index = (y * (colCount - 1) + x) * 6;
 
-	if (position.y() < min.y)
-	{
-		distance += (min.y - position.y()) * (min.y - position.y());
-		normal += QVector3D(0, 1, 0);
-	}
-	else if (position.y() > max.y)
-	{
-		distance += (position.y() - max.y) * (position.y() - max.y);
-		normal += QVector3D(0, -1, 0);
-	}
+	Vertex* tri1v1 = &mVertices[mIndices[index]];
+	Vertex* tri1v2 = &mVertices[mIndices[index + 1]];
+	Vertex* tri1v3 = &mVertices[mIndices[index + 2]];
+	Triangle* tri1 = new Triangle(tri1v1, tri1v2, tri1v3);
+	CollisionObject* collision1 = tri1->TriangleSphereCollision(position, radius);
+	if (collision1 != nullptr)
+		return collision1;
 
-	CollisionObject* boundsCollision = new CollisionObject(true, normal, distance, 0.0f);
-
-	return boundsCollision;
+	Vertex* tri2v1 = &mVertices[mIndices[index + 3]];
+	Vertex* tri2v2 = &mVertices[mIndices[index + 4]];
+	Vertex* tri2v3 = &mVertices[mIndices[index + 5]];
+	Triangle* tri2 = new Triangle(tri2v1, tri2v2, tri2v3);
+	CollisionObject* collision2 = tri2->TriangleSphereCollision(position, radius);
+	if (collision2 != nullptr)
+		return collision2;
 }
 
 float TriangleSurface::SampleHeight(int x, int y)
