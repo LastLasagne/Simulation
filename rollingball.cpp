@@ -81,13 +81,26 @@ bool RollingBall::TryPlace(QVector3D pos)
 	return false;
 }
 
+//void RollingBall::ResolveCollisions()
+//{
+//	//object collision
+//	ResolveCollision(surface->GetCollision(getPosition(), radius));
+//
+//	//surface collision
+//	ResolveCollision(surface->SurfaceSphereCollision(getPosition(), radius));
+//}
+
 void RollingBall::ResolveCollisions()
 {
-	//object collision
-	ResolveCollision(surface->GetCollision(getPosition(), radius));
+	const int maxIterations = 3;
+	for (int i = 0; i < maxIterations; ++i)
+	{
+		CollisionObject* c = surface->GetCollision(getPosition(), radius);
+		if (!c) c = surface->SurfaceSphereCollision(getPosition(), radius);
+		if (!c) break;
 
-	//surface collision
-	ResolveCollision(surface->SurfaceSphereCollision(getPosition(), radius));
+		ResolveCollision(c);
+	}
 }
 
 void RollingBall::ResolveCollision(CollisionObject* collision)
