@@ -15,7 +15,8 @@ public:
 
 	bool TryPlace(QVector3D pos);
 	void UpdatePosition(float time) { setPosition(getPosition() + velocity * time); }
-	void ResolveCollision();
+	void ResolveCollisions();
+	void ResolveCollision(CollisionObject* collision);
 	void scale(float s) {
 		radius *= s;
 		oktaederClass::scale(s);

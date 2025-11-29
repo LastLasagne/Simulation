@@ -51,7 +51,7 @@ void RollingBall::FixedUpdate()
 	//handle rotation
 	//rotate(velocity.length() * time * 180 / 3.14f / 0.1f, QVector3D::crossProduct(normal, velocity));
 
-	ResolveCollision();
+	ResolveCollisions();
 }
 
 void RollingBall::Update(float time)
@@ -66,7 +66,13 @@ void RollingBall::Update(float time)
 
 bool RollingBall::TryPlace(QVector3D pos)
 {
-	CollisionObject* collisionObject = surface->GetCollision(pos, radius);
+	//CollisionObject* collisionObject = surface->GetCollision(pos, radius);
+	//if (collisionObject != nullptr)
+	//{
+	//	return false;
+	//}
+
+	CollisionObject* collisionObject = surface->SurfaceSphereCollision(pos, radius);
 	if (collisionObject != nullptr)
 	{
 		setPosition(pos);
@@ -75,25 +81,22 @@ bool RollingBall::TryPlace(QVector3D pos)
 	return false;
 }
 
-void RollingBall::ResolveCollision()
+void RollingBall::ResolveCollisions()
 {
-	CollisionObject* collisionObject = surface->GetCollision(getPosition(), radius);
+	//object collision
+	ResolveCollision(surface->GetCollision(getPosition(), radius));
 
-	if (collisionObject == nullptr)
+	//surface collision
+	ResolveCollision(surface->SurfaceSphereCollision(getPosition(), radius));
+}
+
+void RollingBall::ResolveCollision(CollisionObject* collision)
+{
+	if (collision == nullptr)
 		return;
 
-	QVector3D normal = -collisionObject->normal.normalized();
-	QVector3D position = getPosition() - normal * (radius - collisionObject->distance);
-	setPosition(position);
-
-	QVector3D reflectVelocity = ((RESTITUTION + 1) * (QVector3D::dotProduct(velocity, collisionObject->normal)) * collisionObject->normal);
-	velocity = velocity - reflectVelocity;
-
-	if (reflectVelocity.length() > velocity.length() || QVector3D::dotProduct(velocity, collisionObject->normal) < 0.01)
-	{
-		collisionObject->distance = radius;
-		contactObject = collisionObject;
-	}
-	else
-		contactObject = nullptr;
+	QVector3D normal = collision->normal;
+	QVector3D pos = getPosition() + normal * (radius - collision->distance);
+	setPosition(pos);
+	velocity = velocity - ((RESTITUTION + 1) * (QVector3D::dotProduct(velocity, normal)) * normal);
 }

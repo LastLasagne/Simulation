@@ -137,76 +137,80 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 
 CollisionObject* TriangleSurface::GetCollision(QVector3D position, float radius)
 {
-	//bounds collision
-	int x = static_cast<int>((position.x() - min.x) / RESOLUTION);
-	int y = static_cast<int>((position.y() - min.y) / RESOLUTION);
-	if (x < 0 || x > colCount + 1 || y < 0 || y > rowCount + 1)
-	{
-		float distance = 0.0f;
-		QVector3D normal = QVector3D(0, 0, 0);
+	QVector3D normal(0, 0, 0);
+	float penetration = 0.0f;
 
-		if (position.x() < min.x)
-		{
-			distance += (min.x - position.x()) * (min.x - position.x());
-			normal += QVector3D(1, 0, 0);
-		}
-		else if (position.x() > max.x)
-		{
-			distance += (position.x() - max.x) * (position.x() - max.x);
-			normal += QVector3D(-1, 0, 0);
-		}
+	float minX = 0.0f;
+	float minY = 0.0f;
+	float maxX = RESOLUTION * (colCount - 1);
+	float maxY = RESOLUTION * (rowCount - 1);
 
-		if (position.y() < min.y)
-		{
-			distance += (min.y - position.y()) * (min.y - position.y());
-			normal += QVector3D(0, 1, 0);
-		}
-		else if (position.y() > max.y)
-		{
-			distance += (position.y() - max.y) * (position.y() - max.y);
-			normal += QVector3D(0, -1, 0);
-		}
-
-		return new CollisionObject(normal, distance, 0.0f);
+	// X penetration
+	if (position.x() < minX) {
+		penetration = position.x() - minX;
+		normal = QVector3D(1, 0, 0);
+	}
+	else if (position.x() > maxX) {
+		penetration = maxX - position.x();
+		normal = QVector3D(-1, 0, 0);
 	}
 
-	//collisionBox collision
-	if (position.x() + radius > collisionBox->boundsMinX && position.x() - radius < collisionBox->boundsMaxX
-		&& position.y() + radius > collisionBox->boundsMinY && position.y() - radius < collisionBox->boundsMaxY
-		&& position.z() + radius > collisionBox->boundsMinZ && position.z() - radius < collisionBox->boundsMaxZ)
+	// Y penetration
+	else if (position.y() < minY) {
+		penetration = position.y() - minY;
+		normal = QVector3D(0, 1, 0);
+	}
+	else if (position.y() > maxY) {
+		penetration = maxY - position.y();
+		normal = QVector3D(0, -1, 0);
+	}
+
+	if (normal != QVector3D(0,0,0))
+		return new CollisionObject(normal, penetration, 0.0f);
+
+	// --- collision box collision ---
+	if (position.x() + radius > collisionBox->boundsMinX &&
+		position.x() - radius < collisionBox->boundsMaxX &&
+		position.y() + radius > collisionBox->boundsMinY &&
+		position.y() - radius < collisionBox->boundsMaxY &&
+		position.z() + radius > collisionBox->boundsMinZ &&
+		position.z() - radius < collisionBox->boundsMaxZ)
 	{
-		float distance = 0.0f;
 		QVector3D normal(0, 0, 0);
+		float penetration = 0.0f;
 
 		if (position.x() < collisionBox->boundsMinX) {
-			distance += (collisionBox->boundsMinX - position.x()) * (collisionBox->boundsMinX - position.x());
+			penetration = collisionBox->boundsMinX - position.x();
 			normal = QVector3D(-1, 0, 0);
 		}
 		else if (position.x() > collisionBox->boundsMaxX) {
-			distance += (position.x() - collisionBox->boundsMaxX) * (position.x() - collisionBox->boundsMaxX);
+			penetration = position.x() - collisionBox->boundsMaxX;
 			normal = QVector3D(1, 0, 0);
 		}
 
 		if (position.y() < collisionBox->boundsMinY) {
-			distance += (collisionBox->boundsMinY - position.y()) * (collisionBox->boundsMinY - position.y());
+			penetration = collisionBox->boundsMinY - position.y();
 			normal = QVector3D(0, -1, 0);
 		}
 		else if (position.y() > collisionBox->boundsMaxY) {
-			distance += (position.y() - collisionBox->boundsMaxY) * (position.y() - collisionBox->boundsMaxY);
+			penetration = position.y() - collisionBox->boundsMaxY;
 			normal = QVector3D(0, 1, 0);
 		}
 
-		return new CollisionObject(normal, distance, 0.0f);
+		return new CollisionObject(normal, penetration, 0.0f);
 	}
 
-	//surface collision
-	return SurfaceSphereCollision(position, radius);
+	return nullptr;
 }
 
 CollisionObject* TriangleSurface::SurfaceSphereCollision(QVector3D position, float radius)
 {
 	int x = static_cast<int>((position.x() - min.x) / RESOLUTION);
 	int y = static_cast<int>((position.y() - min.y) / RESOLUTION);
+
+	if (x < 0 || x > colCount + 1 || y < 0 || y > rowCount + 1)
+		return nullptr;
+
 	x = std::min(colCount - 2, x);
 	y = std::min(y, rowCount - 2);
 
