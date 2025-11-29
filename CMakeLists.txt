@@ -22,7 +22,7 @@ qt_add_executable(QtVulkanApp
     stb_image.cpp
     HeightMap.h HeightMap.cpp
     ObjMesh.h ObjMesh.cpp
-
+    CollisionBox.cpp CollisionBox.h
     oktaederclass.cpp oktaederclass.h
     rollingball.h rollingball.cpp
     collisionobject.h collisionobject.cpp

@@ -6,6 +6,7 @@
 #include "Triangle.h"
 #include "Collisionobject.h"
 #include "point.h"
+#include "CollisionBox.h"
 
 //Defaults to a quad, but can read a mesh from file
 class TriangleSurface : public VisualObject
@@ -29,12 +30,12 @@ private:
 public:
     TriangleSurface();
     TriangleSurface(const std::string& filename);
-    //TriangleSurface(bool toggle, const std::string& filename);
-
+    CollisionObject* GetCollision(QVector3D position, float radius);
     CollisionObject* SurfaceSphereCollision(QVector3D position, float radius);
 
     float SampleHeight(int x, int y);
     void CalculateHeights();
+    CollisionBox* collisionBox;
 };
 
 #endif // TRIANGLESURFACE_H

@@ -15,7 +15,7 @@ public:
 
 	bool TryPlace(QVector3D pos);
 	void UpdatePosition(float time) { setPosition(getPosition() + velocity * time); }
-	void ResolveCollision(CollisionObject collisionObject);
+	void ResolveCollision();
 	void scale(float s) {
 		radius *= s;
 		oktaederClass::scale(s);
@@ -26,8 +26,8 @@ public:
 	const float DRAG = 0.05f; //Coefficient of air resistance
 	QVector3D velocity = QVector3D(0, 0, 0);
     
-	CollisionObject* contactObject = nullptr;
 	TriangleSurface* surface;
+	CollisionObject* contactObject = nullptr;
 	float radius = 1.0f;
 	float mass = 10.0f;
 

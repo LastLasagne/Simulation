@@ -59,14 +59,17 @@ CollisionObject* Triangle::TriangleSphereCollision(QVector3D p, float radius)
 
 	bool inTri = !(hasNegative && hasPositive);
 
-	if (inTri)
-	{
-		QVector3D weights = QVector3D(w0 * w0, w1 * w1, w2 * w2);
-		QVector3D zVector = QVector3D(v0.z, v1.z, v2.z);
-		float z = QVector3D::dotProduct(weights, zVector);
-		float distance = p.z() - z;
-		bool colliding = distance < radius;
-		return new CollisionObject(colliding, this->normal, distance, this->friction);
-	}
-	return nullptr;
+	if (!inTri)
+		return nullptr;
+
+	QVector3D weights = QVector3D(w0 * w0, w1 * w1, w2 * w2);
+	QVector3D zVector = QVector3D(v0.z, v1.z, v2.z);
+	float z = QVector3D::dotProduct(weights, zVector);
+	float distance = p.z() - z;
+	bool colliding = distance < radius;
+
+	if (!colliding)
+		return nullptr;
+
+	return new CollisionObject(this->normal, distance, this->friction);
 }

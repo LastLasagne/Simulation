@@ -28,55 +28,6 @@ TriangleSurface::TriangleSurface() : VisualObject()
 	mMatrix.translate(0.5f, 0.1f, 0.1f);
 }
 
-//TriangleSurface::TriangleSurface(bool toggle, const std::string &filename)
-//{
-//    std::ifstream inn(filename);
-//    if (!inn.is_open())
-//	{
-//		qDebug() << "Failed to open file: " << QString::fromStdString(filename);
-//		return;
-//	}
-//	// read input from math part of compulsory
-//    int n;  
-//    Vertex v;
-//    inn >> n;
-//
-//	float minX = FLT_MAX;
-//	float minY = FLT_MAX;
-//	float maxX = -FLT_MAX;
-//	float maxY = -FLT_MAX;
-//
-//    for (auto i=0; i<n; i++)
-//    {
-//        inn >> v;
-//		qDebug() << "Read vertex: " << v.x << v.y << v.z << v.r << v.g << v.b << v.u << v.v;
-//        mVertices.push_back(v);
-//		if (v.x < minX)
-//		{
-//			min.x = v.x;
-//			minX = v.x;
-//		}
-//		if (v.y < minY)
-//		{
-//			min.y = v.y;
-//			minY = v.y;
-//		}
-//		if (v.x > maxX)
-//		{
-//			max.x = v.x;
-//			maxX = v.x;
-//		}
-//		if (v.y > maxY)
-//		{
-//			max.y = v.y;
-//			maxY = v.y;
-//		}
-//        //qDebug() << v.x << v.y << v.z;
-//    }
-//    inn.close();
-//	mIndices = std::vector<uint32_t>();
-//}
-
 TriangleSurface::TriangleSurface(const std::string& filename)
 {
 	drawType = 1;
@@ -115,9 +66,9 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 		int yIndex = static_cast<int>((p.y - min.y) / RESOLUTION);
 
 		//fix so no stretching occurs on the outsides
-
 		if (xIndex >= colCount || yIndex >= rowCount)
 			continue;
+
 		int index = yIndex * colCount + xIndex;
 		heights[index] += p.z;
 		counts[index] += 1;
@@ -146,7 +97,7 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 
 		float friction = 0.1f;
 		QVector3D color = { 0.5f, 0.25f, 0.0f };
-		float width = 5.0f;
+		int width = 5;
 		if (x > width && y > width && y < rowCount - width && x < colCount - width)
 		{
 			friction = 3.0f;
@@ -184,60 +135,80 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 	}
 }
 
+CollisionObject* TriangleSurface::GetCollision(QVector3D position, float radius)
+{
+	//bounds collision
+	int x = static_cast<int>((position.x() - min.x) / RESOLUTION);
+	int y = static_cast<int>((position.y() - min.y) / RESOLUTION);
+	if (x < 0 || x > colCount + 1 || y < 0 || y > rowCount + 1)
+	{
+		float distance = 0.0f;
+		QVector3D normal = QVector3D(0, 0, 0);
+
+		if (position.x() < min.x)
+		{
+			distance += (min.x - position.x()) * (min.x - position.x());
+			normal += QVector3D(1, 0, 0);
+		}
+		else if (position.x() > max.x)
+		{
+			distance += (position.x() - max.x) * (position.x() - max.x);
+			normal += QVector3D(-1, 0, 0);
+		}
+
+		if (position.y() < min.y)
+		{
+			distance += (min.y - position.y()) * (min.y - position.y());
+			normal += QVector3D(0, 1, 0);
+		}
+		else if (position.y() > max.y)
+		{
+			distance += (position.y() - max.y) * (position.y() - max.y);
+			normal += QVector3D(0, -1, 0);
+		}
+
+		return new CollisionObject(normal, distance, 0.0f);
+	}
+
+	//collisionBox collision
+	if (position.x() + radius > collisionBox->boundsMinX && position.x() - radius < collisionBox->boundsMaxX
+		&& position.y() + radius > collisionBox->boundsMinY && position.y() - radius < collisionBox->boundsMaxY
+		&& position.z() + radius > collisionBox->boundsMinZ && position.z() - radius < collisionBox->boundsMaxZ)
+	{
+		float distance = 0.0f;
+		QVector3D normal(0, 0, 0);
+
+		if (position.x() < collisionBox->boundsMinX) {
+			distance += (collisionBox->boundsMinX - position.x()) * (collisionBox->boundsMinX - position.x());
+			normal = QVector3D(-1, 0, 0);
+		}
+		else if (position.x() > collisionBox->boundsMaxX) {
+			distance += (position.x() - collisionBox->boundsMaxX) * (position.x() - collisionBox->boundsMaxX);
+			normal = QVector3D(1, 0, 0);
+		}
+
+		if (position.y() < collisionBox->boundsMinY) {
+			distance += (collisionBox->boundsMinY - position.y()) * (collisionBox->boundsMinY - position.y());
+			normal = QVector3D(0, -1, 0);
+		}
+		else if (position.y() > collisionBox->boundsMaxY) {
+			distance += (position.y() - collisionBox->boundsMaxY) * (position.y() - collisionBox->boundsMaxY);
+			normal = QVector3D(0, 1, 0);
+		}
+
+		return new CollisionObject(normal, distance, 0.0f);
+	}
+
+	//surface collision
+	return SurfaceSphereCollision(position, radius);
+}
+
 CollisionObject* TriangleSurface::SurfaceSphereCollision(QVector3D position, float radius)
 {
 	int x = static_cast<int>((position.x() - min.x) / RESOLUTION);
 	int y = static_cast<int>((position.y() - min.y) / RESOLUTION);
-
-	if (x < 0 || x > colCount + 1 || y < 0 || y > rowCount + 1)
-	{
-		return nullptr;
-		//float distance = 0.0f;
-		//QVector3D normal = QVector3D(0, 0, 0);
-
-		//if (position.x() < min.x)
-		//{
-		//	distance += (min.x - position.x()) * (min.x - position.x());
-		//	normal += QVector3D(1, 0, 0);
-		//}
-		//else if (position.x() > max.x)
-		//{
-		//	distance += (position.x() - max.x) * (position.x() - max.x);
-		//	normal += QVector3D(-1, 0, 0);
-		//}
-
-		//if (position.y() < min.y)
-		//{
-		//	distance += (min.y - position.y()) * (min.y - position.y());
-		//	normal += QVector3D(0, 1, 0);
-		//}
-		//else if (position.y() > max.y)
-		//{
-		//	distance += (position.y() - max.y) * (position.y() - max.y);
-		//	normal += QVector3D(0, -1, 0);
-		//}
-
-		//CollisionObject* boundsCollision = new CollisionObject(true, normal, distance, 0.0f);
-
-		//return boundsCollision;
-	}
-
 	x = std::min(colCount - 2, x);
 	y = std::min(y, rowCount - 2);
-
-	//if (mIndices.size() == 0)
-	//{
-	//	for (int i = 0; i < mVertices.size(); i += 3)
-	//	{
-	//		Vertex* v1 = &mVertices[i];
-	//		Vertex* v2 = &mVertices[i + 1];
-	//		Vertex* v3 = &mVertices[i + 2];
-	//		Triangle* tri = new Triangle(v1, v2, v3);
-	//		CollisionObject* collision = tri->TriangleSphereCollision(position, radius);
-	//		if (collision != nullptr)
-	//			return collision;
-	//	}
-	//}
 
 	int index = (y * (colCount - 1) + x) * 6;
 

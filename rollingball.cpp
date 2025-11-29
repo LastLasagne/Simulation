@@ -9,6 +9,7 @@ void RollingBall::FixedUpdate()
 
 	//handle movement
 	QVector3D acceleration = QVector3D(0, 0, 0);
+
 	if (contactObject != nullptr)
 	{
 		//roll down
@@ -50,47 +51,7 @@ void RollingBall::FixedUpdate()
 	//handle rotation
 	//rotate(velocity.length() * time * 180 / 3.14f / 0.1f, QVector3D::crossProduct(normal, velocity));
 
-	//check collision
-	CollisionObject* collisionObject = surface->SurfaceSphereCollision(getPosition(), radius);
-
-	//not above any triangle
-	if (collisionObject == nullptr)
-	{
-		contactObject = nullptr;
-		return;
-	}
-
-	if (collisionObject->isColliding)
-	{
-		//handle collision
-		ResolveCollision(*collisionObject);
-		velocity = velocity - ((RESTITUTION + 1) * (QVector3D::dotProduct(velocity, collisionObject->normal)) * collisionObject->normal);
-
-		if (velocity.length() < 0.01 || QVector3D::dotProduct(velocity, collisionObject->normal) < 0.01)
-		{
-			collisionObject->distance = radius;
-			contactObject = collisionObject;
-		}
-		else
-			contactObject = nullptr;
-	}
-	else
-	{
-
-	}
-	{
-		//Wasnt touching, is not touching now as there was no collision
-		if (contactObject == nullptr)
-			return;
-
-		//was touching, is still above the same triangle
-		if (collisionObject->normal.normalized() == contactObject->normal.normalized())
-			return;
-
-		//was touching, is now above another triangle
-			//todo handle concave cases
-		contactObject = nullptr;
-	}
+	ResolveCollision();
 }
 
 void RollingBall::Update(float time)
@@ -105,8 +66,8 @@ void RollingBall::Update(float time)
 
 bool RollingBall::TryPlace(QVector3D pos)
 {
-	CollisionObject* collisionObject = surface->SurfaceSphereCollision(pos, radius);
-	if (collisionObject != nullptr && collisionObject->isColliding)
+	CollisionObject* collisionObject = surface->GetCollision(pos, radius);
+	if (collisionObject != nullptr)
 	{
 		setPosition(pos);
 		return true;
@@ -114,9 +75,25 @@ bool RollingBall::TryPlace(QVector3D pos)
 	return false;
 }
 
-void RollingBall::ResolveCollision(CollisionObject collisionObject)
+void RollingBall::ResolveCollision()
 {
-	QVector3D normal = velocity.normalized();
-	QVector3D position = getPosition() - normal * (radius - collisionObject.distance);
+	CollisionObject* collisionObject = surface->GetCollision(getPosition(), radius);
+
+	if (collisionObject == nullptr)
+		return;
+
+	QVector3D normal = -collisionObject->normal.normalized();
+	QVector3D position = getPosition() - normal * (radius - collisionObject->distance);
 	setPosition(position);
+
+	QVector3D reflectVelocity = ((RESTITUTION + 1) * (QVector3D::dotProduct(velocity, collisionObject->normal)) * collisionObject->normal);
+	velocity = velocity - reflectVelocity;
+
+	if (reflectVelocity.length() > velocity.length() || QVector3D::dotProduct(velocity, collisionObject->normal) < 0.01)
+	{
+		collisionObject->distance = radius;
+		contactObject = collisionObject;
+	}
+	else
+		contactObject = nullptr;
 }

@@ -7,11 +7,10 @@
 struct CollisionObject
 {
 public:
-	CollisionObject(bool c, QVector3D n, float d, float f) : isColliding(c), normal(n), distance(d), friction(f) {}
+	CollisionObject(QVector3D n, float d, float f) : normal(n), distance(d), friction(f) {}
 
 	float distance;
     QVector3D normal;
-	bool isColliding = false;
 	float friction;
 };
 

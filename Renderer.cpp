@@ -11,6 +11,7 @@
 #include "ObjMesh.h"
 #include "oktaederclass.h"
 #include "rollingball.h"
+#include "CollisionBox.h"
 
 /*** Renderer class ***/
 Renderer::Renderer(QVulkanWindow *w, bool msaa)
@@ -30,7 +31,13 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
 
     surface = new TriangleSurface(assetPath + "pointCloudData_Hill.txt");
     surface->setName("surface");
+
+	CollisionBox* box = new CollisionBox(QVector3D(1.0f, 1.0f, 1.5f), 0.2f);
+	box->setName("box");
+
+    surface->collisionBox = box;
     mObjects.push_back(surface);
+	mObjects.push_back(box);
 
     // **************************************
     // Objects in optional map
