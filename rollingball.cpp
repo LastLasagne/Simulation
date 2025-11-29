@@ -1,6 +1,12 @@
 #include "rollingball.h"
 
-RollingBall::RollingBall() { }
+RollingBall::RollingBall()
+{
+	float variance = 0.2f;
+	restitutionVariance = -variance + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (variance - (-variance))));
+	variance = 0.5f;
+	frictionVariance = -variance + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (variance - (-variance))));
+}
 
 void RollingBall::FixedUpdate()
 {
@@ -28,12 +34,12 @@ void RollingBall::FixedUpdate()
 		//acceleration = accelerationDirection * (GRAVITY.length() * (accelerationValue - frictionValue));
 		
 		QVector3D tangentVel = velocity - QVector3D::dotProduct(velocity, normal) * normal;
-		acceleration -= tangentVel * contactObject->friction;
+		acceleration -= tangentVel * std::min(0.0f, (contactObject->friction + FRICTION + frictionVariance));
 	}
 	else
 	{
 		//free fall
-		acceleration = GRAVITY;//-(DRAG * velocity);
+		acceleration = GRAVITY;
 	}
 
 	float accelerationLength = acceleration.length();
@@ -111,5 +117,5 @@ void RollingBall::ResolveCollision(CollisionObject* collision)
 	QVector3D normal = collision->normal;
 	QVector3D pos = getPosition() + normal * (radius - collision->distance);
 	setPosition(pos);
-	velocity = velocity - ((RESTITUTION + 1) * (QVector3D::dotProduct(velocity, normal)) * normal);
+	velocity = velocity - ((std::min(0.0f, RESTITUTION + restitutionVariance) + 1) * (QVector3D::dotProduct(velocity, normal)) * normal);
 }

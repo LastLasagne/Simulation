@@ -240,8 +240,8 @@ void VulkanWindow::handleInput()
 
 		float width = QWindow::width();
 		float height = QWindow::height();
-        float x = (2.0f * mInput.MOUSEX / QWindow::width()) - 1.0f;
-        float y = (2.0f * mInput.MOUSEY / QWindow::height()) -1.0f;
+        float x = (2.0f * mMouseXlast / QWindow::width()) - 1.0f;
+        float y = (2.0f * mMouseYlast / QWindow::height()) -1.0f;
 		QVector4D clip = QVector4D(x, y, 0.0f, 1.0f);
 
         //far
@@ -270,6 +270,6 @@ void VulkanWindow::handleInput()
 		QVector3D rayStart = mCamera->mPosition + 2 * nearDir;
 
         renderer->SpawnBall(0, rayStart, rayEnd);
-		mInput.LMB = false;
+		//mInput.LMB = false;
     }
 }

@@ -52,6 +52,25 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mVulkanWindow = dynamic_cast<VulkanWindow*>(w);
 }
 
+void Renderer::SpawnFluidSim(int count, QVector3D pos, float scale)
+{
+  //  for (int i = 0; i < count; i++)
+  //  {
+  //      RollingBall* ball = new RollingBall();
+  //      ball->surface = surface;
+  //      ball->setName("ball" + std::to_string(mObjects.size()));
+  //      ball->scale(scale);
+		//QVector3D offset = QVector3D(
+		//	static_cast<float>(rand()) / RAND_MAX * scale,
+		//	static_cast<float>(rand()) / RAND_MAX * scale,
+		//	static_cast<float>(rand()) / RAND_MAX * scale);
+		//ball->setPosition(pos + offset);
+  //      mBalls.push_back(ball);
+  //      mObjects.push_back(ball);
+  //      CreateObjectAfterInitialization(ball);
+  //  }
+}
+
 void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
 {
     float scale = 0.05f;
@@ -72,7 +91,9 @@ void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
             {
                 mBalls.push_back(ball);
                 mObjects.push_back(ball);
-	            CreateObjectAfterInitialization(ball);
+                CreateObjectAfterInitialization(ball);
+
+                SpawnFluidSim(10, position, scale);
                 return;
             }
             else

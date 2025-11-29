@@ -15,6 +15,8 @@ class Renderer : public QVulkanWindowRenderer
 public:
     Renderer(QVulkanWindow *w, bool msaa = false);
 
+    void SpawnFluidSim(int count, QVector3D pos, float scale);
+
     //Initializes the Vulkan resources needed,
     // the buffers
     // vertex descriptions for the shaders

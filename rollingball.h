@@ -21,16 +21,18 @@ public:
 		radius *= s;
 		oktaederClass::scale(s);
 	}
+
 	const QVector3D GRAVITY = QVector3D(0, 0, -9.81);
-	const float RESTITUTION = 0.0f; //Coefficient of restitution
-	const float FRICTION = 0.0f; //Coefficient of friction
-	const float DRAG = 0.05f; //Coefficient of air resistance
+	const float RESTITUTION = 0.25f; //Coefficient of restitution
+	const float FRICTION = 0.5f; //Coefficient of friction
+	float restitutionVariance = 0.0f;
+	float frictionVariance = 0.0f;
+
 	QVector3D velocity = QVector3D(0, 0, 0);
     
 	TriangleSurface* surface;
 	CollisionObject* contactObject = nullptr;
 	float radius = 1.0f;
-	float mass = 10.0f;
 
 	bool isResting = false;
 
