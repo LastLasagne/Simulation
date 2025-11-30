@@ -54,21 +54,26 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
 
 void Renderer::SpawnFluidSim(int count, QVector3D pos, float scale)
 {
-  //  for (int i = 0; i < count; i++)
-  //  {
-  //      RollingBall* ball = new RollingBall();
-  //      ball->surface = surface;
-  //      ball->setName("ball" + std::to_string(mObjects.size()));
-  //      ball->scale(scale);
-		//QVector3D offset = QVector3D(
-		//	static_cast<float>(rand()) / RAND_MAX * scale,
-		//	static_cast<float>(rand()) / RAND_MAX * scale,
-		//	static_cast<float>(rand()) / RAND_MAX * scale);
-		//ball->setPosition(pos + offset);
-  //      mBalls.push_back(ball);
-  //      mObjects.push_back(ball);
-  //      CreateObjectAfterInitialization(ball);
-  //  }
+    for (int i = 0; i < count; i++)
+    {
+        RollingBall* ball = new RollingBall();
+        ball->surface = surface;
+        ball->setName("ball" + std::to_string(mObjects.size()));
+        ball->scale(scale);
+		QVector3D offset = QVector3D(
+			static_cast<float>(rand()) / RAND_MAX * scale,
+			static_cast<float>(rand()) / RAND_MAX * scale,
+			static_cast<float>(rand()) / RAND_MAX * scale);
+		ball->setPosition(pos + offset);
+        mBalls.push_back(ball);
+        mObjects.push_back(ball);
+        //CreateObjectAfterInitialization(ball);
+
+        SplineTracer* tracer = new SplineTracer(ball);
+        mSplines.push_back(tracer);
+        mObjects.push_back(tracer);
+        CreateObjectAfterInitialization(tracer);
+    }
 }
 
 void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
@@ -91,14 +96,14 @@ void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
             {
                 mBalls.push_back(ball);
                 mObjects.push_back(ball);
-                CreateObjectAfterInitialization(ball);
+                //CreateObjectAfterInitialization(ball);
 
 				SplineTracer* tracer = new SplineTracer(ball);
 				mSplines.push_back(tracer);
 				mObjects.push_back(tracer);
                 CreateObjectAfterInitialization(tracer);
 
-                //SpawnFluidSim(10, position, scale);
+                SpawnFluidSim(10, position, scale);
                 return;
             }
             else
