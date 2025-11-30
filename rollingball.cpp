@@ -20,19 +20,8 @@ void RollingBall::FixedUpdate()
 	{
 		//roll down
 		QVector3D normal = contactObject->normal;
-		//QVector3D NORMAL = (normal * normal.z());
 
-		acceleration = GRAVITY - ((QVector3D::dotProduct(GRAVITY, normal)) * normal);
-		//QVector3D accelerating = mass * gravityLength * ((QVector3D(normal.x() * normal.z(), normal.y() * normal.z(), normal.z() * normal.z() - 1)) );
-		//QVector3D accelerationForce = NORMAL + GRAVITY.normalized();
-
-		////todo fix friction
-		//float frictionValue = normal.length() * FRICTION;
-		//QVector3D frictionForce = QVector3D(0, 0, 0); //velocity.normalized()* frictionValue;
-
-		//acceleration = (accelerationForce - frictionForce) / mass;
-		//acceleration = accelerationDirection * (GRAVITY.length() * (accelerationValue - frictionValue));
-		
+		acceleration = GRAVITY.length() * ((QVector3D(normal.x() * normal.z(), normal.y() * normal.z(), normal.z() * normal.z() - 1)) );
 		QVector3D tangentVel = velocity - QVector3D::dotProduct(velocity, normal) * normal;
 		acceleration -= tangentVel * std::min(0.0f, (contactObject->friction + FRICTION + frictionVariance));
 	}
@@ -53,10 +42,6 @@ void RollingBall::FixedUpdate()
 
 	velocity += acceleration * dt;
 	UpdatePosition(dt);
-
-	//handle rotation
-	//rotate(velocity.length() * time * 180 / 3.14f / 0.1f, QVector3D::crossProduct(normal, velocity));
-
 	ResolveCollisions();
 }
 
@@ -72,12 +57,6 @@ void RollingBall::Update(float time)
 
 bool RollingBall::TryPlace(QVector3D pos)
 {
-	//CollisionObject* collisionObject = surface->GetCollision(pos, radius);
-	//if (collisionObject != nullptr)
-	//{
-	//	return false;
-	//}
-
 	CollisionObject* collisionObject = surface->SurfaceSphereCollision(pos, radius);
 	if (collisionObject != nullptr)
 	{
@@ -86,15 +65,6 @@ bool RollingBall::TryPlace(QVector3D pos)
 	}
 	return false;
 }
-
-//void RollingBall::ResolveCollisions()
-//{
-//	//object collision
-//	ResolveCollision(surface->GetCollision(getPosition(), radius));
-//
-//	//surface collision
-//	ResolveCollision(surface->SurfaceSphereCollision(getPosition(), radius));
-//}
 
 void RollingBall::ResolveCollisions()
 {
