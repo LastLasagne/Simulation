@@ -9,6 +9,7 @@
 #include "Utilities.h"
 #include "TriangleSurface.h"
 #include "RollingBall.h"
+#include "SplineTracer.h"
 
 class Renderer : public QVulkanWindowRenderer
 {
@@ -87,6 +88,7 @@ private:
     friend class VulkanWindow;
 	std::vector<VisualObject*> mObjects;    //All objects in the program  
 	std::vector<RollingBall*> mBalls;      //All rolling balls
+	std::vector<SplineTracer*> mSplines;      //All splines
     std::unordered_map<std::string, VisualObject*> mMap;    // alternativ container
     std::chrono::time_point<std::chrono::high_resolution_clock> mClockLastFrame{};
     TriangleSurface* surface;

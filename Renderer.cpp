@@ -93,7 +93,11 @@ void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
                 mObjects.push_back(ball);
                 CreateObjectAfterInitialization(ball);
 
-                SpawnFluidSim(10, position, scale);
+				SplineTracer* tracer = new SplineTracer(ball);
+				mSplines.push_back(tracer);
+				mObjects.push_back(tracer);
+
+                //SpawnFluidSim(10, position, scale);
                 return;
             }
             else
@@ -341,7 +345,6 @@ void Renderer::initResources()
     if (result != VK_SUCCESS)
         qFatal("Failed to create graphics pipeline: %d", result);
 
-
 	// Destroying the shader modules, we won't need them anymore after the pipeline is created
     if (vertShaderModule)
         mDeviceFunctions->vkDestroyShaderModule(logicalDevice, vertShaderModule, nullptr);
@@ -396,6 +399,11 @@ void Renderer::startNextFrame()
     //game logic
     for (RollingBall* obj : mBalls) {
         obj->Update(deltaTimeSeconds);
+    }
+
+    for (SplineTracer* obj : mSplines) {
+        obj->Update();
+		CreateObjectAfterInitialization(obj);
     }
 
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
