@@ -21,8 +21,15 @@ public:
     inline VkBuffer& getVBuffer() { return mVertexBuffer.mBuffer; }
     inline VkDeviceMemory& getVBufferMemory() { return mVertexBuffer.mBufferMemory; }
 	inline VkDeviceMemory& getIBufferMemory() { return mIndexBuffer.mBufferMemory; }
+    inline VkDeviceMemory& getStagingBufferMemory() { return mStagingBuffer.mBufferMemory; }
+
     inline void setVBuffer(VkBuffer bufferIn) { mVertexBuffer.mBuffer = bufferIn; }
     inline void setVBufferMemory(VkDeviceMemory bufferMemoryIn) { mVertexBuffer.mBufferMemory = bufferMemoryIn; }
+
+    inline void setStagingBuffer(VkBuffer bufferIn) { mStagingBuffer.mBuffer = bufferIn; }
+    inline void setStagingBufferMemory(VkDeviceMemory bufferMemoryIn) { mStagingBuffer.mBufferMemory = bufferMemoryIn; }
+    inline VkBuffer& getStagingBuffer() { return mStagingBuffer.mBuffer; }
+
     inline VkBuffer& getIBuffer() { return mIndexBuffer.mBuffer; }
     inline void setIBuffer(VkBuffer bufferIn) { mIndexBuffer.mBuffer = bufferIn; }
     inline void setIBufferMemory(VkDeviceMemory bufferMemoryIn) { mIndexBuffer.mBufferMemory = bufferMemoryIn; }
@@ -43,6 +50,7 @@ protected:
     QMatrix4x4 mMatrix;
     std::string mName;
 
+    BufferHandle mStagingBuffer;
 	BufferHandle mVertexBuffer;
 	BufferHandle mIndexBuffer;
     //VkPrimitiveTopology mTopology{ VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST }; //not used

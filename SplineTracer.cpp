@@ -9,6 +9,9 @@ SplineTracer::SplineTracer(VisualObject* object)
 	pathSamples.push_back(tracedObject->getPosition());
 	pathSamples.push_back(tracedObject->getPosition());
 	pathSamples.push_back(tracedObject->getPosition());
+	pathSamples.push_back(tracedObject->getPosition());
+	pathSamples.push_back(tracedObject->getPosition());
+	UpdatePathVertexBuffer();
 }
 
 void SplineTracer::UpdatePathSamples()

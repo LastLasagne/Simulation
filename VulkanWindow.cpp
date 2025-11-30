@@ -270,6 +270,6 @@ void VulkanWindow::handleInput()
 		QVector3D rayStart = mCamera->mPosition + 2 * nearDir;
 
         renderer->SpawnBall(0, rayStart, rayEnd);
-		//mInput.LMB = false;
+		mInput.LMB = false;
     }
 }

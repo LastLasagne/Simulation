@@ -96,6 +96,7 @@ void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
 				SplineTracer* tracer = new SplineTracer(ball);
 				mSplines.push_back(tracer);
 				mObjects.push_back(tracer);
+                CreateObjectAfterInitialization(tracer);
 
                 //SpawnFluidSim(10, position, scale);
                 return;
@@ -381,6 +382,24 @@ void Renderer::initSwapChainResources()
     mCamera.perspective(45.0f, sz.width() / (float) sz.height(), 0.000001f, 100.0f);
 }
 
+void Renderer::UpdateVertexBuffer(VisualObject* object, VkCommandBuffer commandBuffer)
+{
+    VkDeviceSize size = object->getVertices().size() * sizeof(Vertex);
+
+    // Update STAGING memory
+    void* data;
+    mDeviceFunctions->vkMapMemory(mWindow->device(), object->getStagingBufferMemory(), 0, size, 0, &data);
+    memcpy(data, object->getVertices().data(), size);
+    mDeviceFunctions->vkUnmapMemory(mWindow->device(), object->getStagingBufferMemory());
+
+    // Copy into DEVICE buffer
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = size;
+    mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, object->getStagingBuffer(), object->getVBuffer(), 1, &copyRegion);
+}
+
 void Renderer::startNextFrame()
 {
     //Handeling input from keyboard and mouse is done in VulkanWindow
@@ -403,7 +422,7 @@ void Renderer::startNextFrame()
 
     for (SplineTracer* obj : mSplines) {
         obj->Update();
-		CreateObjectAfterInitialization(obj);
+		UpdateVertexBuffer(obj, mWindow->currentCommandBuffer());
     }
 
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
@@ -573,7 +592,7 @@ void Renderer::createVertexBuffer(const VkDeviceSize uniformAlignment, VisualObj
 
 	BufferHandle stagingHandle = createGeneralBuffer(vertexAllocSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, //Transfer source bit is for copying data to the GPU
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    // Host visible memory (CPU) is slower to access than device local memory (GPU)
-
+    
     //Copy the data over to the buffer
     void* data{ nullptr };
     mDeviceFunctions->vkMapMemory(mWindow->device(), stagingHandle.mBufferMemory, 0, vertexAllocSize, 0, &data);
@@ -588,6 +607,9 @@ void Renderer::createVertexBuffer(const VkDeviceSize uniformAlignment, VisualObj
 	visualObject->setVBuffer(gpuHandle.mBuffer);
 	visualObject->setVBufferMemory(gpuHandle.mBufferMemory);
 
+	visualObject->setStagingBuffer(stagingHandle.mBuffer);
+	visualObject->setStagingBufferMemory(stagingHandle.mBufferMemory);
+
     //Copy the data from the staging buffer to the GPU buffer
 	VkCommandBuffer commandBuffer = beginTransientCommandBuffer();
 	VkBufferCopy copyRegion{};
@@ -596,9 +618,6 @@ void Renderer::createVertexBuffer(const VkDeviceSize uniformAlignment, VisualObj
 	copyRegion.size = vertexAllocSize;
 	mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, stagingHandle.mBuffer, gpuHandle.mBuffer, 1, &copyRegion);
 	endTransientCommandBuffer(commandBuffer);
-	
-    //Free the staging buffer
-	destroyBuffer(stagingHandle);
 }
 
 void Renderer::createIndexBuffer(const VkDeviceSize uniformAlignment, VisualObject* visualObject)

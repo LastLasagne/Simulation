@@ -27,6 +27,8 @@ public:
     //Set up resources - only MVP-matrix for now:
     void initSwapChainResources() override;
 
+    void UpdateVertexBuffer(VisualObject* object, VkCommandBuffer commandBuffer);
+
     //Empty for now - needed since we implement QVulkanWindowRenderer
     void releaseSwapChainResources() override;
 
