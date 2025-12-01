@@ -4,6 +4,7 @@
 #include <QVulkanWindow>
 #include "VisualObject.h"
 #include "Input.h"
+#include "RollingBall.h"
 
 /*The QVulkanWindow subclass reimplements the factory function QVulkanWindow::createRenderer().
 This returns a new instance of the QVulkanWindowRenderer subclass.
@@ -23,6 +24,7 @@ public:
     void setSelectedObject(VisualObject* object) { mSelectedObject = object; }
 
     void handleInput();
+    void Quit();
 
 signals:
     void frameQueued(int colorValue);
@@ -48,7 +50,8 @@ private:
     float mCameraRotateSpeed{ -0.1f };
     int mMouseXlast{0}; //for mouse rotate input
     int mMouseYlast{0};
-
+	bool mousePressed{ false };
+	RollingBall* mLastSpawnedBall{ nullptr };
     class Camera* mCamera{ nullptr };
 };
 

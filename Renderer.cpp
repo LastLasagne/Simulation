@@ -29,13 +29,12 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
         }
     }
 
-    surface = new TriangleSurface(assetPath + "pointCloudData_Hill.txt");
-    surface->setName("surface");
 
-	CollisionBox* box = new CollisionBox(QVector3D(1.0f, 1.0f, 1.5f), 0.2f);
+	CollisionBox* box = new CollisionBox(QVector3D(1.73f, 1.6f, 1.74f), 0.05f);
 	box->setName("box");
 
-    surface->collisionBox = box;
+    surface = new TriangleSurface(assetPath + "pointCloudData_Hill.txt", box);
+    surface->setName("surface");
     mObjects.push_back(surface);
 	mObjects.push_back(box);
 
@@ -76,14 +75,39 @@ void Renderer::SpawnFluidSim(int count, QVector3D pos, float scale)
     }
 }
 
-void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
+void Renderer::ShootBall(RollingBall* ball, QVector3D velocity)
 {
-    float scale = 0.05f;
+	ball->velocity = velocity;
+	ball->isResting = false;
+    mBalls.push_back(ball);
+
+    SplineTracer* tracer = new SplineTracer(ball);
+    mSplines.push_back(tracer);
+    mObjects.push_back(tracer);
+    CreateObjectAfterInitialization(tracer);
+}
+
+RollingBall* Renderer::SpawnBall(QVector3D position)
+{
+    float scale = 0.02f;
+    RollingBall* ball = new RollingBall();
+    ball->setPosition(position);
+    ball->scale(scale);
+    ball->surface = surface;
+	ball->setName("ball" + std::to_string(mObjects.size()));
+    mObjects.push_back(ball);
+    CreateObjectAfterInitialization(ball);
+    return ball;
+}
+
+bool Renderer::FindSpawnPosition(int lod, QVector3D rayStart, QVector3D rayEnd, QVector3D& outPosition)
+{
+    float scale = 0.02f;
     int ballCount = 1 / scale;
     RollingBall* ball = new RollingBall();
 	ball->surface = surface;
-	ball->setName("ball" + std::to_string(mObjects.size()));
 	ball->scale(scale);
+    ball->isResting = true;
 
     for (int i = 0; i < ballCount; i++)
     {
@@ -94,17 +118,9 @@ void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
         {
             if (lod == 2)
             {
-                mBalls.push_back(ball);
-                mObjects.push_back(ball);
-                //CreateObjectAfterInitialization(ball);
-
-				SplineTracer* tracer = new SplineTracer(ball);
-				mSplines.push_back(tracer);
-				mObjects.push_back(tracer);
-                CreateObjectAfterInitialization(tracer);
-
-                SpawnFluidSim(10, position, scale);
-                return;
+				outPosition = position;
+                delete ball;
+                return true;
             }
             else
             {
@@ -113,13 +129,13 @@ void Renderer::SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd)
 
                 QVector3D newStart = rayStart + tBefore * (rayEnd - rayStart);
                 QVector3D newEnd = position;
-                SpawnBall(lod, newStart, newEnd);
-                break;
+                delete ball;
+                return FindSpawnPosition(lod, newStart, newEnd, outPosition);
             }
         }
     }
-
     delete ball;
+    return false;
 }
 
 void Renderer::CreateObjectAfterInitialization(VisualObject* object)
@@ -407,6 +423,7 @@ void Renderer::UpdateVertexBuffer(VisualObject* object, VkCommandBuffer commandB
 
 void Renderer::startNextFrame()
 {
+    bool shouldQuit = false;
     //Handeling input from keyboard and mouse is done in VulkanWindow
     //Has to be done each frame to get smooth movement
     mVulkanWindow->handleInput();
@@ -422,7 +439,8 @@ void Renderer::startNextFrame()
 
     //game logic
     for (RollingBall* obj : mBalls) {
-        obj->Update(deltaTimeSeconds);
+        if (obj->Update(deltaTimeSeconds))
+            shouldQuit = true;
     }
 
     for (SplineTracer* obj : mSplines) {
@@ -475,6 +493,9 @@ void Renderer::startNextFrame()
     mDeviceFunctions->vkCmdEndRenderPass(commandBuffer);
     
     mWindow->frameReady();
+    if (shouldQuit) {
+        mVulkanWindow->Quit();
+    }
     mWindow->requestUpdate(); // render continuously, throttled by the presentation rate
 }
 

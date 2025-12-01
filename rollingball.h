@@ -10,8 +10,8 @@ class RollingBall : public oktaederClass
 public:
 	RollingBall();
 
-	void FixedUpdate();
-    void Update(float time);
+	bool FixedUpdate();
+    bool Update(float time);
 
 	bool TryPlace(QVector3D pos);
 	void UpdatePosition(float time) { setPosition(getPosition() + velocity * time); }

@@ -103,15 +103,15 @@ QMenuBar *MainWindow::createMenu()
 }
 void MainWindow::openFile() // slot
 {
-    auto filnavn = QFileDialog::getOpenFileName(this);
-    if (!filnavn.isEmpty())
-    {
-        TriangleSurface* surf = new TriangleSurface(filnavn.toStdString());
-        auto rw = dynamic_cast<Renderer*>(mVulkanWindow->getRenderWindow());
-        rw->getObjects().push_back(surf);
-        rw->releaseResources();
-        rw->initResources();
-    }
+    //auto filnavn = QFileDialog::getOpenFileName(this);
+    //if (!filnavn.isEmpty())
+    //{
+    //    TriangleSurface* surf = new TriangleSurface(filnavn.toStdString());
+    //    auto rw = dynamic_cast<Renderer*>(mVulkanWindow->getRenderWindow());
+    //    rw->getObjects().push_back(surf);
+    //    rw->releaseResources();
+    //    rw->initResources();
+    //}
 }
 
 void MainWindow::selectName()

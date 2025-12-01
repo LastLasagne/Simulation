@@ -28,8 +28,9 @@ TriangleSurface::TriangleSurface() : VisualObject()
 	mMatrix.translate(0.5f, 0.1f, 0.1f);
 }
 
-TriangleSurface::TriangleSurface(const std::string& filename)
+TriangleSurface::TriangleSurface(const std::string& filename, CollisionBox* goal)
 {
+	collisionBox = goal;
 	drawType = 1;
 	std::ifstream inn(filename);
 	if (!inn.is_open())
@@ -90,18 +91,28 @@ TriangleSurface::TriangleSurface(const std::string& filename)
 		QVector3D dy(0, 2.0f * RESOLUTION, up - down);
 
 		// normal = cross(dy, dx) (order matters)
-		
+
 		QVector3D normal = QVector3D::crossProduct(dy, dx).normalized();
 
 		float center = SampleHeight(x, y);
 
 		float friction = 0.1f;
-		QVector3D color = { 0.5f, 0.25f, 0.0f };
+		QVector3D color = {0.494, 0.941, 0.4};
 		int width = 5;
 		if (x > width && y > width && y < rowCount - width && x < colCount - width)
 		{
-			friction = 3.0f;
-			color = { 0.0f, 1.0f, 0.0f };
+			friction = 10.0f;
+			color = QVector3D(0.949f, 0.835f, 0.267f);
+		}
+
+		float distance = 0.25f;
+		QVector3D goalPos = goal->getPosition();
+		float xPos = RESOLUTION * (x);
+		float yPos = RESOLUTION * (y);
+		if (xPos < goalPos.x() + distance && yPos < goalPos.y() + distance && xPos > goalPos.x() - distance && yPos > goalPos.y() - distance)
+		{
+			friction = 5.0f;
+			color = QVector3D(0.18, 0.369, 0.02);
 		}
 
 		Vertex vertex = Vertex(
@@ -168,6 +179,11 @@ CollisionObject* TriangleSurface::GetCollision(QVector3D position, float radius)
 	if (normal != QVector3D(0,0,0))
 		return new CollisionObject(normal, penetration, 0.0f);
 
+	return nullptr;
+}
+
+bool TriangleSurface::IsInGoal(QVector3D position, float radius)
+{
 	// --- collision box collision ---
 	if (position.x() + radius > collisionBox->boundsMinX &&
 		position.x() - radius < collisionBox->boundsMaxX &&
@@ -176,31 +192,9 @@ CollisionObject* TriangleSurface::GetCollision(QVector3D position, float radius)
 		position.z() + radius > collisionBox->boundsMinZ &&
 		position.z() - radius < collisionBox->boundsMaxZ)
 	{
-		QVector3D normal(0, 0, 0);
-		float penetration = 0.0f;
-
-		if (position.x() < collisionBox->boundsMinX) {
-			penetration = collisionBox->boundsMinX - position.x();
-			normal = QVector3D(-1, 0, 0);
-		}
-		else if (position.x() > collisionBox->boundsMaxX) {
-			penetration = position.x() - collisionBox->boundsMaxX;
-			normal = QVector3D(1, 0, 0);
-		}
-
-		if (position.y() < collisionBox->boundsMinY) {
-			penetration = collisionBox->boundsMinY - position.y();
-			normal = QVector3D(0, -1, 0);
-		}
-		else if (position.y() > collisionBox->boundsMaxY) {
-			penetration = position.y() - collisionBox->boundsMaxY;
-			normal = QVector3D(0, 1, 0);
-		}
-
-		return new CollisionObject(normal, penetration, 0.0f);
+		return true;
 	}
-
-	return nullptr;
+	return false;
 }
 
 CollisionObject* TriangleSurface::SurfaceSphereCollision(QVector3D position, float radius)

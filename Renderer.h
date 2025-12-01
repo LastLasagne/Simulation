@@ -18,6 +18,8 @@ public:
 
     void SpawnFluidSim(int count, QVector3D pos, float scale);
 
+    void ShootBall(RollingBall* ball, QVector3D velocity);
+
     //Initializes the Vulkan resources needed,
     // the buffers
     // vertex descriptions for the shaders
@@ -42,7 +44,8 @@ public:
     //Get Vulkan info - just for fun
     void getVulkanHWInfo();
 
-    void SpawnBall(int lod, QVector3D rayStart, QVector3D rayEnd);
+    bool FindSpawnPosition(int lod, QVector3D rayStart, QVector3D rayEnd, QVector3D& outPosition);
+    RollingBall* SpawnBall(QVector3D position);
 
     void CreateObjectAfterInitialization(VisualObject* object);
 

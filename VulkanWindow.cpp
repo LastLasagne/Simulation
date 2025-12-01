@@ -1,6 +1,7 @@
 #include "VulkanWindow.h"
 #include "Renderer.h"
 #include <QKeyEvent>
+#include <qpainter.h>
 
 VulkanWindow::VulkanWindow()
 {
@@ -39,7 +40,7 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
     }
     if (event->key() == Qt::Key_Escape)
     {
-        QCoreApplication::quit();       //Shuts down the whole program
+        Quit();      //Shuts down the whole program
     }
 
     if (event->key() == Qt::Key_0)
@@ -98,6 +99,11 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
     {
         mInput.SPACE = true;
     }
+}
+
+void VulkanWindow::Quit()
+{
+    QCoreApplication::quit();
 }
 
 void VulkanWindow::keyReleaseEvent(QKeyEvent *event)
@@ -234,7 +240,7 @@ void VulkanWindow::handleInput()
             mCamera->mCameraMovement.setY(mCamera->mCameraMovement.y() + mCameraSpeed); //up
     }
 
-    if (mInput.LMB)
+    if (mousePressed == false && mInput.LMB == true)
     {
 		Renderer* renderer = dynamic_cast<Renderer*>(mRenderer);
 
@@ -269,7 +275,55 @@ void VulkanWindow::handleInput()
 		QVector3D rayEnd = mCamera->mPosition + 20 * farDir;
 		QVector3D rayStart = mCamera->mPosition + 2 * nearDir;
 
-        renderer->SpawnBall(0, rayStart, rayEnd);
-		//mInput.LMB = false;
+        QVector3D position;
+        renderer->FindSpawnPosition(0, rayStart, rayEnd, position);
+        mLastSpawnedBall = renderer->SpawnBall(position);
+        mousePressed = true;
+    }
+
+    if (mousePressed == true && mInput.LMB == false)
+    {
+		Renderer* renderer = dynamic_cast<Renderer*>(mRenderer);
+		if (mLastSpawnedBall)
+		{
+
+            float width = QWindow::width();
+            float height = QWindow::height();
+            float x = (2.0f * mMouseXlast / QWindow::width()) - 1.0f;
+            float y = (2.0f * mMouseYlast / QWindow::height()) - 1.0f;
+            QVector4D clip = QVector4D(x, y, 0.0f, 1.0f);
+
+            //far
+            QMatrix4x4 mProjectionMatrix;
+            mProjectionMatrix.setToIdentity();
+            //render fov is 45 degree
+            mProjectionMatrix.perspective(22.5f, width / height, 1.0f, 100.0f);
+            mProjectionMatrix = mProjectionMatrix * clipCorrectionMatrix();
+            QMatrix4x4 invProj = mProjectionMatrix.inverted();
+
+            QVector4D eye = invProj * clip;
+            eye = QVector4D(eye.x(), eye.y(), -1.0f, 0.0);
+            QVector4D worldFar = mCamera->viewMatrix().inverted() * eye;
+
+            mProjectionMatrix.setToIdentity();
+            mProjectionMatrix.perspective(11.25, width / height, 1.0f, 100.0f);
+            mProjectionMatrix = mProjectionMatrix * clipCorrectionMatrix();
+            invProj = mProjectionMatrix.inverted();
+            eye = invProj * clip;
+            eye = QVector4D(eye.x(), eye.y(), -1.0f, 0.0);
+            QVector4D worldNear = mCamera->viewMatrix().inverted() * eye;
+
+            QVector3D farDir = (QVector3D(worldFar)).normalized();
+            QVector3D nearDir = (QVector3D(worldNear)).normalized();
+            QVector3D rayEnd = mCamera->mPosition + 20 * farDir;
+            QVector3D rayStart = mCamera->mPosition + 2 * nearDir;
+
+            QVector3D targetPosition;
+            renderer->FindSpawnPosition(0, rayStart, rayEnd, targetPosition);
+            QVector3D shootDir = mLastSpawnedBall->getPosition() - targetPosition;
+			renderer->ShootBall(mLastSpawnedBall, shootDir * 10.0f);
+		}
+		mLastSpawnedBall = nullptr;
+		mousePressed = false;
     }
 }

@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     if (!inst.create())
         qFatal("Failed to create Vulkan instance: %d", inst.errorCode());
 
-    //VulkanWindow is the Qt window for our Vulkan Renderer
+    //VulkanWindow is the Qt window for our Vulkan Renderer 
     VulkanWindow *vulkanWindow = new VulkanWindow;
     //It needs the Vulkan instance
     vulkanWindow->setVulkanInstance(&inst);

@@ -29,8 +29,9 @@ private:
 
 public:
     TriangleSurface();
-    TriangleSurface(const std::string& filename);
+    TriangleSurface(const std::string& filename, CollisionBox* goal);
     CollisionObject* GetCollision(QVector3D position, float radius);
+    bool IsInGoal(QVector3D position, float radius);
     CollisionObject* SurfaceSphereCollision(QVector3D position, float radius);
 
     float SampleHeight(int x, int y);
